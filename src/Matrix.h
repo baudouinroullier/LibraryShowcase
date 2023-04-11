@@ -11,32 +11,36 @@ template<int _N, int _M>
 class Matrix
 {
 protected:
+    using MatNM = Matrix<_N,_M>;
     std::array<double, _N*_M> m_values{};
+    static constexpr int N = _N;
+    static constexpr int M = _M;
 
 public:
-    Matrix() { m_values.fill(0); }
-    Matrix(const std::initializer_list<double>& list)
+    constexpr Matrix() {}
+    constexpr Matrix(const std::initializer_list<double>& list)
     {
         std::copy(list.begin(), list.end(), m_values.begin());
     }
-    double operator()(int n, int m=0) const
+
+    constexpr double operator()(int n, int m) const
     {
         return m_values[n + m*_N];
     }
-    double& operator()(int n, int m=0)
+    constexpr double& operator()(int n, int m)
     {
         return m_values[n + m*_N];
     }
-    double operator[](int n) const
+    constexpr double operator[](int n) const
     {
         return m_values[n];
     }
-    double& operator[](int n)
+    constexpr double& operator[](int n)
     {
         return m_values[n];
     }
 
-    Matrix<_M,_N> transpose() const
+    constexpr Matrix<_M,_N> transpose() const
     {
         Matrix<_M,_N> ret;
         for (int j=0; j<_M; ++j)
@@ -47,106 +51,102 @@ public:
         return ret;
     }
 
-    static Matrix<_N, _M> zeroes()
+    constexpr static MatNM zeroes()
     {
-        Matrix<_N, _M> ret;
+        MatNM ret;
         ret.m_values.fill(0);
         return ret;
     }
-    static Matrix<_N, _M> ones()
+    constexpr static MatNM ones()
     {
-        Matrix<_N, _M> ret;
+        MatNM ret;
         ret.m_values.fill(1);
         return ret;
     }
-
-    Matrix<_N, _M>& operator*=(double d)
+    constexpr static MatNM eye()
     {
-        for (auto& v : m_values) v *= d;
-        return *this;
-    }
-    Matrix<_N, _M> operator*(double d) const
-    {
-        Matrix<_N, _M> ret = *this;
-        ret *= d;
+        MatNM ret;
+        for (int i=0; i<std::min(_N,_M); ++i)
+            ret(i,i) = 1;
         return ret;
     }
-    Matrix<_N, _M>& operator/=(double d)
+
+    constexpr MatNM operator-() const
     {
-        return *this *= (1/d);
-    }
-    Matrix<_N, _M> operator/(double d) const
-    {
-        return *this * (1/d);
+        MatNM ret;
+        for (int i=0; i<size(); i++)
+            ret[i] = -m_values[i];
+        return ret;
     }
 
-    Matrix<_N, _M>& operator+=(double d)
+    constexpr MatNM& operator+=(double d)
     {
         for (auto& v : m_values) v += d;
         return *this;
     }
-    Matrix<_N, _M> operator+(double d) const
-    {
-        Matrix<_N, _M> ret = *this;
-        ret += d;
-        return ret;
-    }
-    Matrix<_N, _M>& operator-=(double d)
+    constexpr MatNM& operator-=(double d)
     {
         return *this += -d;
     }
-    Matrix<_N, _M> operator-(double d) const
+
+    constexpr MatNM& operator*=(double d)
     {
-        return *this + (-d);
+        for (auto& v : m_values) v *= d;
+        return *this;
+    }
+    constexpr MatNM& operator/=(double d)
+    {
+        return *this *= (1/d);
     }
 
-    Matrix<_N, _M>& operator+=(const Matrix<_N, _M>& rhs)
+    constexpr MatNM& operator+=(const MatNM& rhs)
     {
         for (int i=0; i<size(); ++i) m_values[i] += rhs.m_values[i];
         return *this;
     }
-    Matrix<_N, _M> operator+(Matrix<_N, _M> rhs) const
+    constexpr MatNM operator+(MatNM rhs) const
     {
         rhs += *this;
         return rhs;
     }
-    Matrix<_N, _M>& operator-=(const Matrix<_N, _M>& rhs)
+    constexpr MatNM& operator-=(const MatNM& rhs)
     {
         for (int i=0; i<size(); ++i) m_values[i] -= rhs.m_values[i];
         return *this;
     }
-    Matrix<_N, _M> operator-(Matrix<_N, _M> rhs) const
+    constexpr MatNM operator-(const MatNM& rhs) const
     {
-        Matrix<_N, _M> ret = *this;
+        MatNM ret = *this;
         ret -= rhs;
         return ret;
     }
 
-    auto begin() const { return m_values.begin(); }
-    auto end() const { return m_values.end(); }
-    auto begin() { return m_values.begin(); }
-    auto end() { return m_values.end(); }
+    constexpr auto begin() const { return m_values.begin(); }
+    constexpr auto end() const { return m_values.end(); }
+    constexpr auto begin() { return m_values.begin(); }
+    constexpr auto end() { return m_values.end(); }
 
-    int width() const { return N; }
-    int height() const { return M; }
-    int size() const { return N*M; }
-
-    static constexpr int N = _N;
-    static constexpr int M = _M;
+    constexpr int width() const { return N; }
+    constexpr int height() const { return M; }
+    constexpr int size() const { return N*M; }
 };
 
-template<int _N> using Vector = Matrix<_N,1>;
-using Vector2 = Vector<2>;
-using Vector3 = Vector<3>;
+template<int N, int M> constexpr inline Matrix<N,M> operator+(Matrix<N,M> m, double d) { return m += d; }
+template<int N, int M> constexpr inline Matrix<N,M> operator-(Matrix<N,M> m, double d) { return m -= d; }
+template<int N, int M> constexpr inline Matrix<N,M> operator*(Matrix<N,M> m, double d) { return m *= d; }
+template<int N, int M> constexpr inline Matrix<N,M> operator/(Matrix<N,M> m, double d) { return m /= d; }
+template<int N, int M> constexpr inline Matrix<N,M> operator+(double d, Matrix<N,M> m) { return m += d; }
+template<int N, int M> constexpr inline Matrix<N,M> operator-(double d, const Matrix<N,M>& m) { return -m + d; }
+template<int N, int M> constexpr inline Matrix<N,M> operator*(double d, Matrix<N,M> m) { return m *= d; }
 
 
-template<int N1, int _M, int N2>
-inline Matrix<N1, N2> operator*(const Matrix<N1, _M>& a, const Matrix<_M, N2>& b)
+template<int N1, int M, int N2> constexpr
+inline Matrix<N1, N2> operator*(const Matrix<N1, M>& a, const Matrix<M, N2>& b)
 {
     Matrix<N1, N2> ret;
     for (int j=0; j<N2; ++j)
     {
-        for (int k=0; k<_M; ++k)
+        for (int k=0; k<M; ++k)
         {
             for (int i=0; i<N1; ++i)
                 ret(i, j) += a(i, k) * b(k, j);
@@ -155,30 +155,12 @@ inline Matrix<N1, N2> operator*(const Matrix<N1, _M>& a, const Matrix<_M, N2>& b
     return ret;
 }
 
-template<int _N, int _M>
-inline Vector<_N> operator*(const Matrix<_N, _M>& a, const Vector<_M>& b)
-{
-    return operator*<_N, _M, 1>(a, b);
-}
 
-template<int _N>
-inline double dot(const Vector<_N>& a, const Vector<_N>& b)
+template<int N, int M>
+inline Matrix<N,M> operator+(const Matrix<N, M>& a, const Matrix<N, M>& b)
 {
-    return (a.transpose()*b)[0];
-}
-
-template<int _N>
-inline double norm(const Vector<_N>& a)
-{
-    return std::sqrt(dot(a,a));
-}
-
-
-template<int _N, int _M>
-inline Matrix<_N,_M> operator+(const Matrix<_N, _M>& a, const Matrix<_N, _M>& b)
-{
-    Matrix<_N, _M> ret;
-    for (int i=0; i<_N*_M; ++i)
+    Matrix<N, M> ret;
+    for (int i=0; i<N*M; ++i)
         ret.m_values[i] = a.m_values[i] + b.m_values[i];
     return ret;
 }

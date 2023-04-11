@@ -5,7 +5,8 @@ project(BasicLinearAlgebra)
 ## Build static library BLA
 
 add_library(BLA
-    src/Matrix.h src/Matrix.cpp)
+    src/Matrix.h src/Matrix.cpp
+    src/Vector.h src/Vector.cpp)
 
 ## Build test executable
 

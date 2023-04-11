@@ -1,9 +1,9 @@
-#include "../src/Matrix.h"
+#include "../src/Vector.h"
 #include <fmt/core.h>
 
 int main()
 {
-    bla::Vector2 test{1,1};
-    fmt::print("Hello! {} {}\n", test(0), test(1));
+    bla::Vec2 test{{1.,1.}};
+    fmt::print("Hello! {} {}\n", test.x, test.y);
     return 0;
 }
