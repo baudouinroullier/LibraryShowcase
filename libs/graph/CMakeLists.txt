@@ -1,15 +1,14 @@
 cmake_minimum_required(VERSION 3.17)
 
-project(BasicLinearAlgebra CXX)
+project(GraphLib CXX)
 
-## Build static library BLA
+## Build static library
 
-set(LIB_NAME "BLA")
+set(LIB_NAME "graph")
 add_library(${LIB_NAME}
-    include/bla/Matrix.hpp
-    include/bla/Vector.hpp
-    include/bla/Maths.h src/Maths.cpp)
-target_include_directories(${LIB_NAME} PRIVATE "include/bla")
+    include/graph/GraphNode.h src/GraphNode.cpp
+)
+target_include_directories(${LIB_NAME} PRIVATE "include/graph")
 
 ## libfmt
 

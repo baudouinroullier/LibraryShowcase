@@ -1,4 +1,4 @@
-#include "../include/bla/Maths.h"
+#include "Maths.h"
 
 namespace maths
 {
