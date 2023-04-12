@@ -1,7 +1,7 @@
 #ifndef VECTOR_H
 #define VECTOR_H
 
-#include "Matrix.h"
+#include "Matrix.hpp"
 
 
 namespace bla
