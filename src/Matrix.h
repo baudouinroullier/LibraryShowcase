@@ -18,6 +18,7 @@ protected:
 
 public:
     constexpr Matrix() {}
+    constexpr Matrix(const MatNM& m): m_values{m.m_values} {}
     constexpr Matrix(const std::initializer_list<double>& list)
     {
         std::copy(list.begin(), list.end(), m_values.begin());
@@ -165,7 +166,37 @@ inline Matrix<N,M> operator+(const Matrix<N, M>& a, const Matrix<N, M>& b)
     return ret;
 }
 
+
 };
+
+#ifdef ADD_FMT_FORMATTERS
+#include <fmt/format.h>
+
+namespace fmt
+{
+template<int N, int M>
+struct formatter<bla::Matrix<N,M>> : public fmt::formatter<double>
+{
+    template <typename FormatContext>
+    auto format(const bla::Matrix<N,M>& mat, FormatContext& ctx) -> decltype (ctx.out())
+    {
+        ctx.advance_to(fmt::format_to(ctx.out(), "Matrix of size ({} {})", N, M));
+        for (int i=0; i<N; ++i)
+        {
+            ctx.advance_to(fmt::format_to(ctx.out(), "\n  |"));
+            for (int j=0; j<M; ++j)
+            {
+                ctx.advance_to(fmt::format_to(ctx.out(), " "));
+                ctx.advance_to(fmt::formatter<double>::format(mat(i,j), ctx));
+            }
+            ctx.advance_to(fmt::format_to(ctx.out(), " |"));
+        }
+        return ctx.out();
+    }
+};
+}
+
+#endif
 
 
 #endif // MATRIX_H
