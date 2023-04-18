@@ -13,27 +13,41 @@ class EmpyData
 };
 
 
-template<class Data>
-class GraphEdgeItf
+template<class Data, class CRTPNode, class CRTPEdge>
+class EdgeItf
 {
 public:
-    virtual std::pair<GraphEdgeItf<Data>*, GraphEdgeItf<Data>*> getNodes() = 0;
-    virtual GraphEdgeItf<Data>* getStart() = 0;
-    virtual GraphEdgeItf<Data>* getEnd() = 0;
+    using Node = CRTPNode;
+    using Edge = CRTPEdge;
+
+    virtual std::pair<Node*, Node*> getNodes() = 0;
+    virtual std::pair<const Node*, const Node*> getNodes() const = 0;
+    virtual Node* getStart() = 0;
+    virtual const Node* getStart() const = 0;
+    virtual Node* getEnd() = 0;
+    virtual const Node* getEnd() const = 0;
+
+    const typename Data::Edge& data() const { return m_data; }
+    typename Data::Edge& data() { return m_data; }
 protected:
-    typename Data::Edge m_data;
+    typename Data::Edge m_data{};
 };
 
-template<class Data>
-class GraphNodeItf
+template<class Data, class CRTPNode, class CRTPEdge>
+class NodeItf
 {
 public:
-    GraphNodeItf();
+    using Node = CRTPNode;
+    using Edge = CRTPEdge;
 
-    virtual std::vector<GraphNodeItf<Data>*> getNeighbors() = 0;
-    virtual std::vector<GraphEdgeItf<Data>*> getEdges() = 0;
+    virtual Edge* connectNode(Node* neighbor) = 0;
+    virtual std::vector<Node*> getNeighbors() const = 0;
+    virtual std::vector<Edge*> getEdges() const = 0;
+
+    const typename Data::Node& data() const { return m_data; }
+    typename Data::Node& data() { return m_data; }
 protected:
-    typename Data::Node m_data;
+    typename Data::Node m_data{};
 };
 
 }

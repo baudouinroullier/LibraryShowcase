@@ -4,7 +4,9 @@ project(LibraryShowCase CXX)
 
 ## Build test executable
 
-add_executable(test tests/main.cpp)
+add_executable(test
+    tests/main.cpp
+    tests/DrawableGraph.h tests/DrawableGraph.cpp)
 set_property(TARGET test PROPERTY CXX_STANDARD 20)
 
 ## bla
@@ -23,4 +25,7 @@ target_compile_definitions(test PRIVATE ADD_FMT_FORMATTERS)
 find_library(FMT fmt PATHS extlibs/fmt/build)
 target_link_libraries(test ${FMT})
 target_include_directories(test PRIVATE "extlibs/fmt/include")
+
+## sfml
+target_link_libraries(test sfml-graphics sfml-window sfml-system)
 

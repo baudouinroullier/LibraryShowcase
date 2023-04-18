@@ -1,0 +1,66 @@
+#include "DrawableGraph.h"
+#include <fmt/core.h>
+#include <cmath>
+
+DrawableGraph::DrawableGraph()
+{
+    m_nodes[0].data() = {250, 600, 20, sf::Color::Red};
+    m_nodes[1].data() = {550, 600, 30, sf::Color::Yellow};
+    m_nodes[2].data() = {250, 300, 10, sf::Color::Yellow};
+    m_nodes[3].data() = {550, 300, 20, sf::Color::Green};
+    m_nodes[4].data() = {400, 100, 30, sf::Color::Cyan};
+
+    m_nodes[0].connectNode(&m_nodes[1])->data().weight = 2;
+    m_nodes[0].connectNode(&m_nodes[2])->data().weight = 3;
+    m_nodes[0].connectNode(&m_nodes[3])->data().weight = 4;
+    m_nodes[1].connectNode(&m_nodes[2])->data().weight = 5;
+    m_nodes[1].connectNode(&m_nodes[3])->data().weight = 6;
+    m_nodes[2].connectNode(&m_nodes[3])->data().weight = 7;
+    m_nodes[2].connectNode(&m_nodes[4])->data().weight = 8;
+    m_nodes[3].connectNode(&m_nodes[4])->data().weight = 9;
+}
+
+void DrawableGraph::draw(sf::RenderTarget& target, sf::RenderStates states) const
+{
+    sf::CircleShape c;
+    c.setOutlineColor(sf::Color::Black);
+    c.setOutlineThickness(3);
+
+    sf::RectangleShape rec;
+
+    for (const auto& n : m_nodes)
+    {
+        const auto& data = n.data();
+        for (auto* e : n.getEdges())
+        {
+            if (e->getStart() == &n)
+            {
+                const auto* other = e->getEnd();
+                const auto& odata = other->data();
+
+                double angle = std::atan2(data.y-odata.y, data.x-odata.x);
+                double dist = std::sqrt(std::pow(data.x-odata.x, 2.)+std::pow(data.y-odata.y, 2.));
+                sf::Color color = data.color*sf::Color{128,128,128} + odata.color*sf::Color{128, 128, 128};
+
+                rec.setSize(sf::Vector2f(dist, e->data().weight));
+                rec.setOrigin(dist/2, e->data().weight/2);
+                rec.setPosition((data.x+odata.x)/2, (data.y+odata.y)/2);
+                rec.setRotation(180*angle/M_PI);
+                rec.setFillColor(color);
+
+                target.draw(rec, states);
+            }
+        }
+    }
+
+    for (const auto& n : m_nodes)
+    {
+        const auto& data = n.data();
+        const double r = data.radius;
+        c.setRadius(r);
+        c.setOrigin(r, r);
+        c.setPosition(data.x, data.y);
+        c.setFillColor(data.color);
+        target.draw(c, states);
+    }
+}
