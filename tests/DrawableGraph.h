@@ -2,7 +2,7 @@
 #define DRAWABLEGRAPH_H
 
 #include <SFML/Graphics.hpp>
-#include <graph/GraphPointer.h>
+#include <graph/GraphWithPointer.h>
 
 class GraphData
 {
@@ -19,7 +19,7 @@ public:
     class Edge
     {
     public:
-        int weight;
+        int weight = 2;
     };
 };
 

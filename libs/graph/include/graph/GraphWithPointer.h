@@ -1,5 +1,5 @@
-#ifndef GRAPHPOINTER_H
-#define GRAPHPOINTER_H
+#ifndef GRAPHWITHPOINTER_H
+#define GRAPHWITHPOINTER_H
 
 #include "GraphItf.h"
 #include <algorithm>
@@ -66,4 +66,4 @@ void foo();
 
 }
 
-#endif // GRAPHPOINTER_H
+#endif // GRAPHWITHPOINTER_H

@@ -7,7 +7,7 @@ project(GraphLib CXX)
 set(LIB_NAME "graph")
 add_library(${LIB_NAME}
     include/graph/GraphItf.h
-    include/graph/GraphPointer.h src/GraphPointer.cpp
+    include/graph/GraphWithPointer.h src/GraphWithPointer.cpp
 )
 target_include_directories(${LIB_NAME} PRIVATE "include/graph")
 

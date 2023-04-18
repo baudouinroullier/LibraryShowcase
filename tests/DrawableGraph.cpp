@@ -40,7 +40,13 @@ void DrawableGraph::draw(sf::RenderTarget& target, sf::RenderStates states) cons
 
                 double angle = std::atan2(data.y-odata.y, data.x-odata.x);
                 double dist = std::sqrt(std::pow(data.x-odata.x, 2.)+std::pow(data.y-odata.y, 2.));
-                sf::Color color = data.color*sf::Color{128,128,128} + odata.color*sf::Color{128, 128, 128};
+
+                const double gamma = 2.2;
+                sf::Color color(
+                    std::pow(0.5*std::pow(data.color.r/255., gamma) + 0.5*std::pow(odata.color.r/255., gamma), 1/gamma)*255,
+                    std::pow(0.5*std::pow(data.color.g/255., gamma) + 0.5*std::pow(odata.color.g/255., gamma), 1/gamma)*255,
+                    std::pow(0.5*std::pow(data.color.b/255., gamma) + 0.5*std::pow(odata.color.b/255., gamma), 1/gamma)*255);
+
 
                 rec.setSize(sf::Vector2f(dist, e->data().weight));
                 rec.setOrigin(dist/2, e->data().weight/2);
