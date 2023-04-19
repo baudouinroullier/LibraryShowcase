@@ -4,7 +4,6 @@
 #include "GraphItf.h"
 #include <algorithm>
 #include <memory>
-#include <fmt/core.h>
 
 namespace graph
 {

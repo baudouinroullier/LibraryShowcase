@@ -8,6 +8,7 @@ set(LIB_NAME "graph")
 add_library(${LIB_NAME}
     include/graph/GraphItf.h
     include/graph/GraphWithPointer.h src/GraphWithPointer.cpp
+    include/graph/GraphWithVector.h include/graph/GraphWithVector.cpp
 )
 target_include_directories(${LIB_NAME} PRIVATE "include/graph")
 
