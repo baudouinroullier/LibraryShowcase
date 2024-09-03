@@ -6,7 +6,9 @@ This is a simple generic maths library, aiming to be simple to use, and if possi
 
 ```
 git clone
-mkdir build && cd build
+git submodule update --init --recursive
+mkdir build
+cd build
 cmake ..
 make
 ./test
