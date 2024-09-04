@@ -4,20 +4,19 @@
 
 DrawableGraph::DrawableGraph()
 {
-    m_nodes[0].data() = {250, 600, 20, sf::Color::Red};
-    m_nodes[1].data() = {550, 600, 30, sf::Color::Yellow};
-    m_nodes[2].data() = {250, 300, 10, sf::Color::Yellow};
-    m_nodes[3].data() = {550, 300, 20, sf::Color::Green};
-    m_nodes[4].data() = {400, 100, 30, sf::Color::Cyan};
+    m_nodes[0].data() = {250, 600, 10, sf::Color::Black};
+    m_nodes[1].data() = {550, 600, 10, sf::Color::Black};
+    m_nodes[2].data() = {250, 300, 10, sf::Color::Black};
+    m_nodes[3].data() = {550, 300, 10, sf::Color::Black};
+    m_nodes[4].data() = {400, 100, 10, sf::Color::Black};
 
     m_nodes[0].connectNode(&m_nodes[1])->data().weight = 2;
-    m_nodes[0].connectNode(&m_nodes[2])->data().weight = 3;
-    m_nodes[0].connectNode(&m_nodes[3])->data().weight = 4;
-    m_nodes[1].connectNode(&m_nodes[2])->data().weight = 5;
-    m_nodes[1].connectNode(&m_nodes[3])->data().weight = 6;
-    m_nodes[2].connectNode(&m_nodes[3])->data().weight = 7;
-    m_nodes[2].connectNode(&m_nodes[4])->data().weight = 8;
-    m_nodes[3].connectNode(&m_nodes[4])->data().weight = 9;
+    m_nodes[0].connectNode(&m_nodes[2])->data().weight = 2;
+    m_nodes[1].connectNode(&m_nodes[2])->data().weight = 2;
+    m_nodes[1].connectNode(&m_nodes[3])->data().weight = 2;
+    m_nodes[2].connectNode(&m_nodes[3])->data().weight = 2;
+    m_nodes[2].connectNode(&m_nodes[4])->data().weight = 2;
+    m_nodes[3].connectNode(&m_nodes[4])->data().weight = 2;
 }
 
 void DrawableGraph::draw(sf::RenderTarget& target, sf::RenderStates states) const

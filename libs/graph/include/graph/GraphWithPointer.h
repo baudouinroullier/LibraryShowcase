@@ -60,9 +60,6 @@ public:
 protected:
     std::vector<std::shared_ptr<Edge>> m_edges;
 };
-
-void foo();
-
 }
 
 #endif // GRAPHWITHPOINTER_H

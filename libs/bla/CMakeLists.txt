@@ -9,6 +9,7 @@ add_library(${LIB_NAME}
     include/bla/Matrix.hpp
     include/bla/Vector.hpp
     include/bla/Maths.h src/Maths.cpp)
+set_property(TARGET ${LIB_NAME} PROPERTY CXX_STANDARD 20)
 target_include_directories(${LIB_NAME} PRIVATE "include/bla")
 
 ## libfmt
