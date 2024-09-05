@@ -7,19 +7,52 @@ DrawableGraph::DrawableGraph()
     m_font.loadFromFile("/usr/share/fonts/truetype/fonts-yrsa-rasa/Yrsa-Regular.ttf");
 
 
-    graph::NodeIdx n1 = m_graph.createNode(GraphData::Node{250, 600, 10, sf::Color::Black});
-    graph::NodeIdx n2 = m_graph.createNode(GraphData::Node{550, 600, 10, sf::Color::Black});
-    graph::NodeIdx n3 = m_graph.createNode(GraphData::Node{250, 300, 10, sf::Color::Black});
-    graph::NodeIdx n4 = m_graph.createNode(GraphData::Node{550, 300, 10, sf::Color::Black});
-    graph::NodeIdx n5 = m_graph.createNode(GraphData::Node{400, 100, 10, sf::Color::Black});
+    graph::NodeIdx n0 = m_graph.createNode({250, 600, 10, sf::Color::Black});
+    graph::NodeIdx n1 = m_graph.createNode({550, 600, 10, sf::Color::Black});
+    graph::NodeIdx n2 = m_graph.createNode({250, 300, 10, sf::Color::Black});
+    graph::NodeIdx n3 = m_graph.createNode({550, 300, 10, sf::Color::Black});
+    graph::NodeIdx n4 = m_graph.createNode({400, 100, 10, sf::Color::Black});
 
-    m_graph.linkNodes(n1, n2, {2});
+    m_graph.linkNodes(n0, n1, {2});
+    m_graph.linkNodes(n0, n2, {2});
+    m_graph.linkNodes(n1, n2, {2.8});
     m_graph.linkNodes(n1, n3, {2});
     m_graph.linkNodes(n2, n3, {2});
-    m_graph.linkNodes(n2, n4, {2});
-    m_graph.linkNodes(n3, n4, {2});
-    m_graph.linkNodes(n3, n5, {2});
-    m_graph.linkNodes(n4, n5, {2});
+    m_graph.linkNodes(n2, n4, {1.4});
+    m_graph.linkNodes(n3, n4, {1.4});
+}
+
+void DrawableGraph::manageMouseEvent(sf::Event::MouseButtonEvent event)
+{
+    if (event.button == sf::Mouse::Button::Left)
+    {
+        m_graph.createNode({event.x, event.y, 5, sf::Color::Black});
+    }
+
+    if (event.button == sf::Mouse::Button::Right)
+    {
+        m_end++;
+        if (m_end > 4)
+        {
+            m_start++;
+            m_end = 0;
+            if (m_start > 4)
+                m_start = 0;
+        }
+
+        fmt::print("path between {} and {}\n", m_start, m_end);
+        fflush(stdout);
+
+        m_path = m_graph.shortestPath(m_start, m_end,
+            [](const GraphData::Edge& edge){ return edge.weight; },
+            [](const GraphData::Node& n1, const GraphData::Node& n2){ return std::sqrt(std::pow((n1.x-n2.x),2.) + std::pow((n1.y-n2.y),2.)); });
+
+        for (auto& [i,n] : m_graph.nodes())
+            n.data.color = sf::Color::Black;
+
+        for (auto& [e,n] : m_path)
+            m_graph.node(n).data.color = sf::Color::Red;
+    }
 }
 
 void DrawableGraph::draw(sf::RenderTarget& target, sf::RenderStates states) const

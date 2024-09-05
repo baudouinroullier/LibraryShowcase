@@ -114,8 +114,8 @@ public:
 
     template<class EdgeLengthFunction, class HeuristicFunction>
     std::vector<std::pair<EdgeIdx, NodeIdx>> shortestPath(NodeIdx start, NodeIdx end,
-        EdgeLengthFunction f = [](EdgeIdx){ return 1; },
-        HeuristicFunction h = [](NodeIdx, NodeIdx){ return 0; })
+        EdgeLengthFunction f = [](typename Data::Edge){ return 1; },
+        HeuristicFunction h = [](typename Data::Node, typename Data::Node){ return 0; })
     {
         struct RankedNode
         {
@@ -125,11 +125,12 @@ public:
             double totalCost() const { return heuristicToEnd + costToNode; }
         };
 
-        std::priority_queue<RankedNode> openList{[](auto rn1, auto rn2){ return rn1.totalCost() > rn2.totalCost(); }};
+        auto cmp = [](auto rn1, auto rn2){ return rn1.totalCost() > rn2.totalCost(); };
+        std::priority_queue<RankedNode, std::vector<RankedNode>, decltype(cmp)> openList{cmp};
         std::map<NodeIdx, double> closedList;
         std::map<NodeIdx, std::pair<EdgeIdx, NodeIdx>> cameFrom;
 
-        openList.push({0, 0, end});
+        openList.push({end, 0, 0});
 
         do
         {
@@ -149,14 +150,14 @@ public:
                 return path;
             }
 
-            for (auto [edgeIdx, neighborIdx] : node(current.node)->links)
+            for (auto [edgeIdx, neighborIdx] : node(current.node).links)
             {
-                double tentativeScore = current.costToNode + f(edge(edgeIdx)->data);
+                double tentativeScore = current.costToNode + f(edge(edgeIdx).data);
                 if (!closedList.contains(neighborIdx) || closedList[neighborIdx] > tentativeScore)
                 {
                     closedList[neighborIdx] = tentativeScore;
-                    cameFrom[neighborIdx] = std::make_pair(edgeIdx, neighborIdx);
-                    openList.push({neighborIdx, tentativeScore, f(edgeIdx)});
+                    cameFrom[neighborIdx] = std::make_pair(edgeIdx, current.node);
+                    openList.push({neighborIdx, tentativeScore, h(node(neighborIdx).data, node(start).data)});
                 }
             }
         }

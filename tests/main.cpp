@@ -21,8 +21,13 @@ int main()
 
     while (window.isOpen())
     {
-        if (window.pollEvent(event); event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
-            window.close();
+        while (window.pollEvent(event))
+        {
+            if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+                window.close();
+            else if (event.type == sf::Event::MouseButtonReleased)
+                dg.manageMouseEvent(event.mouseButton);
+        }
 
         window.clear(sf::Color::White);
         window.draw(dg);

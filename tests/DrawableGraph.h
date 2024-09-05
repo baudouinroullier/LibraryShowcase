@@ -16,7 +16,7 @@ struct GraphData
 
     struct Edge
     {
-        int weight = 2;
+        double weight = 2;
     };
 };
 
@@ -26,12 +26,18 @@ class DrawableGraph : public sf::Drawable
 public:
     DrawableGraph();
 
+    void manageMouseEvent(sf::Event::MouseButtonEvent event);
+
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
     sf::Font m_font;
 
     graph::Graph<GraphData> m_graph;
+    std::vector<std::pair<graph::EdgeIdx, graph::NodeIdx>> m_path;
+
+    graph::NodeIdx m_start = 0;
+    graph::NodeIdx m_end = 1;
 };
 
 #endif // DRAWABLEGRAPH_H
