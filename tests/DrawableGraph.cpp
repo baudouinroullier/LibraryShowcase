@@ -7,19 +7,19 @@ DrawableGraph::DrawableGraph()
     m_font.loadFromFile("/usr/share/fonts/truetype/fonts-yrsa-rasa/Yrsa-Regular.ttf");
 
 
-    graph::NodeIdx n0 = m_graph.createNode({250, 600, 10, sf::Color::Black});
-    graph::NodeIdx n1 = m_graph.createNode({550, 600, 10, sf::Color::Black});
-    graph::NodeIdx n2 = m_graph.createNode({250, 300, 10, sf::Color::Black});
-    graph::NodeIdx n3 = m_graph.createNode({550, 300, 10, sf::Color::Black});
-    graph::NodeIdx n4 = m_graph.createNode({400, 100, 10, sf::Color::Black});
+    graph::NodeIdx n0 = m_graph.createNode({250, 600, 20, sf::Color::Black});
+    graph::NodeIdx n1 = m_graph.createNode({550, 600, 20, sf::Color::Black});
+    graph::NodeIdx n2 = m_graph.createNode({250, 300, 20, sf::Color::Black});
+    graph::NodeIdx n3 = m_graph.createNode({550, 300, 20, sf::Color::Black});
+    graph::NodeIdx n4 = m_graph.createNode({400, 100, 20, sf::Color::Black});
 
-    m_graph.linkNodes(n0, n1, {2});
-    m_graph.linkNodes(n0, n2, {2});
-    m_graph.linkNodes(n1, n2, {2.8});
-    m_graph.linkNodes(n1, n3, {2});
-    m_graph.linkNodes(n2, n3, {2});
-    m_graph.linkNodes(n2, n4, {1.4});
-    m_graph.linkNodes(n3, n4, {1.4});
+    m_graph.linkNodes(n0, n1, {10});
+    m_graph.linkNodes(n0, n2, {10});
+    m_graph.linkNodes(n1, n2, {10});
+    m_graph.linkNodes(n1, n3, {40});
+    m_graph.linkNodes(n2, n3, {40});
+    m_graph.linkNodes(n2, n4, {10});
+    m_graph.linkNodes(n3, n4, {10});
 }
 
 void DrawableGraph::manageMouseEvent(sf::Event::MouseButtonEvent event)
@@ -39,19 +39,20 @@ void DrawableGraph::manageMouseEvent(sf::Event::MouseButtonEvent event)
             if (m_start > 4)
                 m_start = 0;
         }
-
-        fmt::print("path between {} and {}\n", m_start, m_end);
-        fflush(stdout);
-
         m_path = m_graph.shortestPath(m_start, m_end,
             [](const GraphData::Edge& edge){ return edge.weight; },
-            [](const GraphData::Node& n1, const GraphData::Node& n2){ return std::sqrt(std::pow((n1.x-n2.x),2.) + std::pow((n1.y-n2.y),2.)); });
+            [](const GraphData::Node& n1, const GraphData::Node& n2){ return 0.; });
 
         for (auto& [i,n] : m_graph.nodes())
             n.data.color = sf::Color::Black;
+        for (auto& [i,e] : m_graph.edges())
+            e.data.color = sf::Color::Black;
 
         for (auto& [e,n] : m_path)
+        {
             m_graph.node(n).data.color = sf::Color::Red;
+            if (e != -1) m_graph.edge(e).data.color = sf::Color::Red;
+        }
     }
 }
 
@@ -77,18 +78,11 @@ void DrawableGraph::draw(sf::RenderTarget& target, sf::RenderStates states) cons
         double angle = std::atan2(d1.y-d2.y, d1.x-d2.x);
         double dist = std::sqrt(std::pow(d1.x-d2.x, 2.)+std::pow(d1.y-d2.y, 2.));
 
-        const double gamma = 2.2;
-        sf::Color color(
-            std::pow(0.5*std::pow(d1.color.r/255., gamma) + 0.5*std::pow(d2.color.r/255., gamma), 1/gamma)*255,
-            std::pow(0.5*std::pow(d1.color.g/255., gamma) + 0.5*std::pow(d2.color.g/255., gamma), 1/gamma)*255,
-            std::pow(0.5*std::pow(d1.color.b/255., gamma) + 0.5*std::pow(d2.color.b/255., gamma), 1/gamma)*255);
-
-
         rec.setSize(sf::Vector2f(dist, e.data.weight));
         rec.setOrigin(dist/2, e.data.weight/2);
         rec.setPosition((d1.x+d2.x)/2, (d1.y+d2.y)/2);
         rec.setRotation(180*angle/M_PI);
-        rec.setFillColor(color);
+        rec.setFillColor(e.data.color);
 
         target.draw(rec, states);
 
@@ -104,7 +98,9 @@ void DrawableGraph::draw(sf::RenderTarget& target, sf::RenderStates states) cons
         c.setRadius(r);
         c.setOrigin(r, r);
         c.setPosition(n.data.x, n.data.y);
-        c.setFillColor(n.data.color);
+        c.setFillColor(sf::Color::White);
+        c.setOutlineColor(n.data.color);
+        c.setOutlineThickness(2);
         target.draw(c, states);
 
         text.setString(std::to_string(i));

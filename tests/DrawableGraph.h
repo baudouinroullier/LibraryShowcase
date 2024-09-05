@@ -17,6 +17,7 @@ struct GraphData
     struct Edge
     {
         double weight = 2;
+        sf::Color color;
     };
 };
 
@@ -37,7 +38,7 @@ protected:
     std::vector<std::pair<graph::EdgeIdx, graph::NodeIdx>> m_path;
 
     graph::NodeIdx m_start = 0;
-    graph::NodeIdx m_end = 1;
+    graph::NodeIdx m_end = 0;
 };
 
 #endif // DRAWABLEGRAPH_H
