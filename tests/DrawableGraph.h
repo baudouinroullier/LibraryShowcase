@@ -2,23 +2,20 @@
 #define DRAWABLEGRAPH_H
 
 #include <SFML/Graphics.hpp>
-#include <graph/GraphWithPointer.h>
+#include <graph/GraphWithVector.h>
 
-class GraphData
+struct GraphData
 {
-public:
-    class Node
+    struct Node
     {
-    public:
         int x = 0;
         int y = 0;
         int radius = 10;
         sf::Color color;
     };
 
-    class Edge
+    struct Edge
     {
-    public:
         int weight = 2;
     };
 };
@@ -32,7 +29,9 @@ public:
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
-    graph::NodeWithPointer<GraphData> m_nodes[5];
+    sf::Font m_font;
+
+    graph::Graph<GraphData> m_graph;
 };
 
 #endif // DRAWABLEGRAPH_H
