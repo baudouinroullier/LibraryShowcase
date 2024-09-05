@@ -1,5 +1,5 @@
-#ifndef GRAPHWITHVECTOR_H
-#define GRAPHWITHVECTOR_H
+#ifndef GRAPH_H
+#define GRAPH_H
 
 #include <algorithm>
 #include <map>
@@ -175,4 +175,4 @@ protected:
 
 }
 
-#endif // GRAPHWITHVECTOR_H
+#endif // GRAPH_H

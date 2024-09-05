@@ -2,7 +2,7 @@
 #define DRAWABLEGRAPH_H
 
 #include <SFML/Graphics.hpp>
-#include <graph/GraphWithVector.h>
+#include <graph/Graph.h>
 
 struct GraphData
 {
