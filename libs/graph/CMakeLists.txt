@@ -7,6 +7,7 @@ project(GraphLib CXX)
 set(LIB_NAME "graph")
 add_library(${LIB_NAME}
     include/graph/Graph.h src/Graph.cpp
+    include/graph/algo.h src/algo.cpp
 )
 set_property(TARGET ${LIB_NAME} PROPERTY CXX_STANDARD 20)
 target_include_directories(${LIB_NAME} PRIVATE "include/graph")

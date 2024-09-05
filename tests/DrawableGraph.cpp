@@ -39,7 +39,7 @@ void DrawableGraph::manageMouseEvent(sf::Event::MouseButtonEvent event)
             if (m_start > 4)
                 m_start = 0;
         }
-        m_path = m_graph.shortestPath(m_start, m_end,
+        m_path = graph::shortestPath(m_graph, m_start, m_end,
             [](const GraphData::Edge& edge){ return edge.weight; },
             [](const GraphData::Node& n1, const GraphData::Node& n2){ return 0.; });
 
