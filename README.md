@@ -1,6 +1,6 @@
 # LibraryShowcase
 
-This is a simple project to shwocase my code libraries, for purposes of documenting, testing and showing example.
+This is a simple project to showcase my code libraries, for purposes of documenting, testing and showing example.
 
 # How to use (outdated)
 
