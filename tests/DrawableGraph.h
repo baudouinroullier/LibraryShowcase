@@ -3,13 +3,13 @@
 
 #include <SFML/Graphics.hpp>
 #include <graph/algo.h>
+#include "bla/Vector.hpp"
 
 struct GraphData
 {
     struct Node
     {
-        int x = 0;
-        int y = 0;
+        sf::Vector2i pos;
         int radius = 10;
         sf::Color color;
     };

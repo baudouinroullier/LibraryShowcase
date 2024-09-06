@@ -2,6 +2,7 @@
 #define ALGO_H
 
 #include "Graph.h"
+#include "fmt/core.h"
 
 namespace graph
 {
