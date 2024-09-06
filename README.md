@@ -1,8 +1,8 @@
-# BasicLinearAlgebra
+# LibraryShowcase
 
-This is a simple generic maths library, aiming to be simple to use, and if possible not too slow.
+This is a simple project to shwocase my code libraries, for purposes of documenting, testing and showing example.
 
-# How to test
+# How to use (outdated)
 
 ```
 git clone
