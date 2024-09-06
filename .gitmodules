@@ -1,3 +1,6 @@
 [submodule "extlibs/fmt"]
 	path = extlibs/fmt
 	url = https://github.com/fmtlib/fmt
+[submodule "libs/Graph"]
+	path = libs/Graph
+	url = git@github.com:baudouinroullier/Graph.git
