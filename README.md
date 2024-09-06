@@ -13,3 +13,31 @@ cmake ..
 make
 ./test
 ```
+
+# Ideas to develop
+
+## Graph library
+
+manage a graph with nodes and edges
+
+cool algorithms : pathfinding, mst, triangulation, voronoi, etc
+
+quadtree, kdtree
+
+## Geometric algebra
+
+2D multivectors : scalar, vector (×2), bivector
+
+maybe 3d multivectors : scalar, vector (×3), bivector (×3), trivector
+
+## Logging library
+
+rotate log files, multiple logging levels, log timestamping
+
+## Visual stuff
+
+SFML, imgui
+
+look into GLSL shaders with SFML
+
+"3D engine" with axonometric projection
