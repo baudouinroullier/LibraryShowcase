@@ -4,3 +4,6 @@
 [submodule "libs/Graph"]
 	path = libs/Graph
 	url = git@github.com:baudouinroullier/Graph.git
+[submodule "libs/GeometricAlgebra"]
+	path = libs/GeometricAlgebra
+	url = git@github.com:baudouinroullier/GeometricAlgebra.git
