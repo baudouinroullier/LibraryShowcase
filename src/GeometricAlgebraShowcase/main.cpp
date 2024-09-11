@@ -24,11 +24,18 @@ int main()
     // }
 
     galg::Vec2 a{1,2};
-    galg::Vec2 b{3,4};
+    galg::Vec2 b{-3,4};
 
-    fmt::print("a = {} {}\n", a.x(), a.y());
-    fmt::print("b = {} {}\n", b.x(), b.y());
+    fmt::print("a = {}, b = {}\n", a, b);
+    fmt::print("a + b = {}\n", a + b);
+    fmt::print("a - b = {}\n", a - b);
+    fmt::print("3*a/2 = {} \n", 3*a/2);
     fmt::print("a.b = {} \n", galg::dot(a, b));
-    fmt::print("ab = {} \n", a*b);
+    fmt::print("ab = {} = {:.3f}e^(i{:.3f})\n", a * b, std::abs(a*b), std::arg(a * b));
+
+    fmt::print("norm1(b) = {} \n", b.norm1());
+    fmt::print("norm2(b) = {} \n", b.norm2());
+    fmt::print("normP(b, 4) = {} \n", b.normP(4));
+    fmt::print("normInf(b) = {} \n", b.normInf());
     return 0;
 }
