@@ -7,3 +7,6 @@
 [submodule "libs/GeometricAlgebra"]
 	path = libs/GeometricAlgebra
 	url = git@github.com:baudouinroullier/GeometricAlgebra.git
+[submodule "libs/Interact"]
+	path = libs/Interact
+	url = git@github.com:baudouinroullier/Interact.git
