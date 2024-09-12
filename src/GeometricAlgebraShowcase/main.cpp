@@ -2,53 +2,9 @@
 #include <SFML/Graphics.hpp>
 #include "GeometricAlgebra/Vector.h"
 #include "GeometricAlgebra/Multivector.h"
+#include "Interact/Movable.h"
 
 
-class MovableCircle : public sf::CircleShape
-{
-public:
-    MovableCircle(): sf::CircleShape{radius} {
-        setOrigin(radius, radius);
-        setFillColor(sf::Color::White);
-        setOutlineColor(sf::Color::Black);
-        setOutlineThickness(2);
-        setPosition(rand()%600+200, rand()%600+200);
-    }
-
-    void processEvent(sf::Event e)
-    {
-        if (state == Fixed && e.type == sf::Event::EventType::MouseMoved && std::abs(e.mouseMove.x - getPosition().x) < radius && std::abs(e.mouseMove.y - getPosition().y) < radius)
-            state = Hover;
-        else if (state == Hover)
-        {
-            if (e.type == sf::Event::EventType::MouseButtonPressed && e.mouseButton.button == sf::Mouse::Button::Left)
-            {
-                state = Held;
-                clickPos = getPosition() - sf::Vector2f{e.mouseButton.x, e.mouseButton.y};
-            }
-            else if (e.type == sf::Event::EventType::MouseMoved && !(std::abs(e.mouseMove.x - getPosition().x) < radius && std::abs(e.mouseMove.y - getPosition().y) < radius))
-                state = Fixed;
-        }
-        else if (state == Held)
-        {
-            if (e.type == sf::Event::EventType::MouseButtonReleased)
-                state = Hover;
-            else if (e.type == sf::Event::MouseMoved)
-                setPosition(clickPos + sf::Vector2f{e.mouseMove.x , e.mouseMove.y});
-        }
-
-        // setFillColor(state == Fixed ? sf::Color::White : sf::Color{128,128,128});
-        setOutlineThickness(2+2*state);
-    }
-
-    enum MoveState
-    {
-        Fixed, Hover, Held
-    } state = Fixed;
-
-    sf::Vector2f clickPos;
-    static constexpr double radius = 10;
-};
 int main()
 {
     sf::ContextSettings settings;
@@ -57,7 +13,22 @@ int main()
     sf::RenderWindow window{{1000, 1000}, "ShowCase", sf::Style::Default, settings};
     sf::Event event;
 
-    MovableCircle circles[10];
+    const int radius = 10;
+    sf::CircleShape circles[10];
+    act::Movable mCircles[10];
+    for (sf::CircleShape& c : circles)
+    {
+        c.setRadius(radius);
+        c.setOrigin(radius, radius);
+        c.setFillColor(sf::Color::White);
+        c.setOutlineColor(sf::Color::Black);
+        c.setOutlineThickness(2);
+        c.setPosition(rand()%600+200, rand()%600+200);
+    }
+    for (int i = 0; i<10; ++i)
+    {
+        mCircles[i].setShape(&circles[i]);
+    }
 
     while (window.isOpen())
     {
@@ -66,13 +37,13 @@ int main()
             if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
                 window.close();
 
-            for (auto& c : circles)
-                c.processEvent(event);
+            for (auto& mc : mCircles)
+                mc.processEvent(event);
         }
 
         window.clear(sf::Color::White);
-        for (auto& c : circles)
-            window.draw(c);
+        for (auto& mc : mCircles)
+            window.draw(mc);
         window.display();
     }
 

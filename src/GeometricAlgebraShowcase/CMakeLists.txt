@@ -21,3 +21,7 @@ target_compile_definitions(${EXE_NAME} PRIVATE ADD_FMT_FORMATTERS)
 ## sfml
 target_link_libraries(${EXE_NAME} sfml-graphics sfml-window sfml-system)
 
+## Act lib
+find_library(INTERACT Interact PATHS ../../libs/Interact/build)
+target_link_libraries(${EXE_NAME} ${INTERACT})
+target_include_directories(${EXE_NAME} PRIVATE "../../libs/Interact/include")
