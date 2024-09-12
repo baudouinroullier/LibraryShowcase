@@ -2,7 +2,7 @@
 #include <SFML/Graphics.hpp>
 #include "GeometricAlgebra/Vector.h"
 #include "GeometricAlgebra/Multivector.h"
-#include "Interact/Movable.h"
+#include "Interact/Draggable.h"
 
 
 int main()
@@ -15,7 +15,7 @@ int main()
 
     const int radius = 10;
     sf::CircleShape circles[10];
-    act::Movable mCircles[10];
+    act::Draggable mCircles[10];
     for (sf::CircleShape& c : circles)
     {
         c.setRadius(radius);
@@ -28,6 +28,7 @@ int main()
     for (int i = 0; i<10; ++i)
     {
         mCircles[i].setShape(&circles[i]);
+        mCircles[i].setStateChangeCallback([](sf::Shape& shape, act::Draggable::MoveState state) { shape.setOutlineThickness(2 + 2 * state); } );
     }
 
     while (window.isOpen())
