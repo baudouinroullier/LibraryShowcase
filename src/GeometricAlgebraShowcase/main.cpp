@@ -2,7 +2,8 @@
 #include <SFML/Graphics.hpp>
 #include "GeometricAlgebra/Vector.h"
 #include "GeometricAlgebra/Multivector.h"
-#include "Interact/Draggable.h"
+#include "Interact/Shape.h"
+#include "Interact/Drag.h"
 
 
 int main()
@@ -14,21 +15,21 @@ int main()
     sf::Event event;
 
     const int radius = 10;
-    sf::CircleShape circles[10];
-    act::Draggable mCircles[10];
-    for (sf::CircleShape& c : circles)
-    {
-        c.setRadius(radius);
-        c.setOrigin(radius, radius);
-        c.setFillColor(sf::Color::White);
-        c.setOutlineColor(sf::Color::Black);
-        c.setOutlineThickness(2);
-        c.setPosition(rand()%600+200, rand()%600+200);
-    }
+    act::Shape circles[10];
+
     for (int i = 0; i<10; ++i)
     {
-        mCircles[i].setShape(&circles[i]);
-        mCircles[i].setStateChangeCallback([](sf::Shape& shape, act::Draggable::MoveState state) { shape.setOutlineThickness(2 + 2 * state); } );
+        auto c = circles[i].makeShape<sf::CircleShape>(radius);
+        c->setOrigin(radius, radius);
+        c->setFillColor(sf::Color::White);
+        c->setOutlineColor(sf::Color::Black);
+        c->setOutlineThickness(2);
+        c->setPosition(rand() % 600 + 200, rand() % 600 + 200);
+        circles[i].makeInteraction<act::Drag>([](sf::Shape& shape, bool active)
+                                              { shape.setOutlineThickness(2 + 2 * (int) active); });
+        // circles[i].makeInteraction<act::Hover>([](sf::Shape& shape, act::Hover::State state) { shape.setOutlineThickness(2 + 2 * (int)state); });
+        circles[i].makeInteraction<act::Hover>([](sf::Shape& shape, bool active)
+                                               { shape.setOutlineColor(active ? sf::Color::Blue : sf::Color::Black);  });
     }
 
     while (window.isOpen())
@@ -38,13 +39,13 @@ int main()
             if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
                 window.close();
 
-            for (auto& mc : mCircles)
-                mc.processEvent(event);
+            for (act::Shape& c : circles | std::views::reverse)
+                if (c.processEvent(event)) break;
         }
 
         window.clear(sf::Color::White);
-        for (auto& mc : mCircles)
-            window.draw(mc);
+        for (auto& c : circles)
+            window.draw(c);
         window.display();
     }
 
