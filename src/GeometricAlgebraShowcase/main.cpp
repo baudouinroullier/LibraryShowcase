@@ -4,6 +4,8 @@
 #include "GeometricAlgebra/Multivector.h"
 #include "Interact/Shape.h"
 #include "Interact/Drag.h"
+#include "Interact/Hover.h"
+#include "Interact/ArrowShape.h"
 
 
 int main()
@@ -12,6 +14,7 @@ int main()
     settings.antialiasingLevel = 8;
 
     sf::RenderWindow window{{1000, 1000}, "ShowCase", sf::Style::Default, settings};
+    window.setFramerateLimit(60);
     sf::Event event;
 
     const int radius = 10;
@@ -26,11 +29,14 @@ int main()
         c->setOutlineThickness(2);
         c->setPosition(rand() % 600 + 200, rand() % 600 + 200);
         circles[i].makeInteraction<act::Drag>([](sf::Shape& shape, bool active)
-                                              { shape.setOutlineThickness(2 + 2 * (int) active); });
+                                              { shape.setOutlineThickness(shape.getOutlineThickness() + active ? 2 : -2); });
         // circles[i].makeInteraction<act::Hover>([](sf::Shape& shape, act::Hover::State state) { shape.setOutlineThickness(2 + 2 * (int)state); });
         circles[i].makeInteraction<act::Hover>([](sf::Shape& shape, bool active)
                                                { shape.setOutlineColor(active ? sf::Color::Blue : sf::Color::Black);  });
     }
+
+    act::ArrowShape arrow;
+    arrow.setPosition(500, 500);
 
     while (window.isOpen())
     {
@@ -46,6 +52,8 @@ int main()
         window.clear(sf::Color::White);
         for (auto& c : circles)
             window.draw(c);
+        window.draw(arrow);
+        arrow.rotate(360/60);
         window.display();
     }
 
