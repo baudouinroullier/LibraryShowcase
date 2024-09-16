@@ -8,6 +8,55 @@
 #include "Interact/ArrowShape.h"
 
 
+
+class MovableArrow : public sf::Drawable
+{
+public:
+    MovableArrow() :
+        m_arrow(10)
+    {
+        const double w = 10;
+        sf::CircleShape* s = m_startPoint.makeShape<sf::CircleShape>(w);
+        s->setOrigin(w, w);
+        s->setFillColor(sf::Color::Transparent);
+        s->setOutlineColor(sf::Color::Black);
+        s->setOutlineThickness(2);
+        s->setPosition(500, 500);
+
+        sf::CircleShape* e = m_endPoint.makeShape<sf::CircleShape>(w);
+        e->setOrigin(w, w);
+        e->setFillColor(sf::Color::Transparent);
+        e->setOutlineColor(sf::Color::Black);
+        e->setOutlineThickness(2);
+        e->setPosition(600, 500);
+
+        m_startPoint.makeInteraction<act::Drag>([this](sf::Shape& shape, bool active)
+                                                {
+                                                    shape.setOutlineThickness(shape.getOutlineThickness() + active ? 2 : -2);
+                                                    m_arrow.setStartPosition(m_startPoint.getShape()->getPosition());
+                                                });
+        m_endPoint.makeInteraction<act::Drag>([this](sf::Shape& shape, bool active)
+                                              {
+                                                  shape.setOutlineThickness(shape.getOutlineThickness() + active ? 2 : -2);
+                                                  m_arrow.setEndPosition(m_endPoint.getShape()->getPosition());
+                                              });
+    }
+
+protected:
+    void draw(sf::RenderTarget& target, sf::RenderStates states) const override
+    {
+        target.draw(m_arrow, states);
+        target.draw(m_endPoint, states);
+        target.draw(m_startPoint, states);
+    }
+public:
+    act::ArrowShape m_arrow;
+    act::Shape m_startPoint;
+    act::Shape m_endPoint;
+};
+
+
+
 int main()
 {
     sf::ContextSettings settings;
@@ -17,26 +66,7 @@ int main()
     window.setFramerateLimit(60);
     sf::Event event;
 
-    const int radius = 10;
-    act::Shape circles[10];
-
-    for (int i = 0; i<10; ++i)
-    {
-        auto c = circles[i].makeShape<sf::CircleShape>(radius);
-        c->setOrigin(radius, radius);
-        c->setFillColor(sf::Color::White);
-        c->setOutlineColor(sf::Color::Black);
-        c->setOutlineThickness(2);
-        c->setPosition(rand() % 600 + 200, rand() % 600 + 200);
-        circles[i].makeInteraction<act::Drag>([](sf::Shape& shape, bool active)
-                                              { shape.setOutlineThickness(shape.getOutlineThickness() + active ? 2 : -2); });
-        // circles[i].makeInteraction<act::Hover>([](sf::Shape& shape, act::Hover::State state) { shape.setOutlineThickness(2 + 2 * (int)state); });
-        circles[i].makeInteraction<act::Hover>([](sf::Shape& shape, bool active)
-                                               { shape.setOutlineColor(active ? sf::Color::Blue : sf::Color::Black);  });
-    }
-
-    act::ArrowShape arrow;
-    arrow.setPosition(500, 500);
+    MovableArrow arrow;
 
     while (window.isOpen())
     {
@@ -45,15 +75,13 @@ int main()
             if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
                 window.close();
 
-            for (act::Shape& c : circles | std::views::reverse)
-                if (c.processEvent(event)) break;
+            arrow.m_startPoint.processEvent(event);
+            arrow.m_endPoint.processEvent(event);
         }
 
         window.clear(sf::Color::White);
-        for (auto& c : circles)
-            window.draw(c);
+
         window.draw(arrow);
-        arrow.rotate(360/60);
         window.display();
     }
 
