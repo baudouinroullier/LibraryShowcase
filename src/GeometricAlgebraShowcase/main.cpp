@@ -9,22 +9,21 @@
 
 
 
-class MovableArrow : public sf::Drawable
+class MovableArrow : public act::ArrowShape
 {
 public:
-    MovableArrow() :
-        m_arrow(10)
+    MovableArrow(double width, sf::Color color) :
+        ArrowShape(width, color)
     {
-        const double w = 10;
-        sf::CircleShape* s = m_startPoint.makeShape<sf::CircleShape>(w);
-        s->setOrigin(w, w);
+        sf::CircleShape* s = m_startPoint.makeShape<sf::CircleShape>(width);
+        s->setOrigin(width, width);
         s->setFillColor(sf::Color::Transparent);
         s->setOutlineColor(sf::Color::Black);
         s->setOutlineThickness(2);
         s->setPosition(500, 500);
 
-        sf::CircleShape* e = m_endPoint.makeShape<sf::CircleShape>(w);
-        e->setOrigin(w, w);
+        sf::CircleShape* e = m_endPoint.makeShape<sf::CircleShape>(width);
+        e->setOrigin(width, width);
         e->setFillColor(sf::Color::Transparent);
         e->setOutlineColor(sf::Color::Black);
         e->setOutlineThickness(2);
@@ -33,24 +32,23 @@ public:
         m_startPoint.makeInteraction<act::Drag>([this](sf::Shape& shape, bool active)
                                                 {
                                                     shape.setOutlineThickness(shape.getOutlineThickness() + active ? 2 : -2);
-                                                    m_arrow.setStartPosition(m_startPoint.getShape()->getPosition());
+                                                    setStartPosition(m_startPoint.getShape()->getPosition());
                                                 });
         m_endPoint.makeInteraction<act::Drag>([this](sf::Shape& shape, bool active)
                                               {
                                                   shape.setOutlineThickness(shape.getOutlineThickness() + active ? 2 : -2);
-                                                  m_arrow.setEndPosition(m_endPoint.getShape()->getPosition());
+                                                  setEndPosition(m_endPoint.getShape()->getPosition());
                                               });
     }
 
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override
     {
-        target.draw(m_arrow, states);
+        ArrowShape::draw(target, states);
         target.draw(m_endPoint, states);
         target.draw(m_startPoint, states);
     }
 public:
-    act::ArrowShape m_arrow;
     act::Shape m_startPoint;
     act::Shape m_endPoint;
 };
@@ -62,11 +60,15 @@ int main()
     sf::ContextSettings settings;
     settings.antialiasingLevel = 8;
 
-    sf::RenderWindow window{{1000, 1000}, "ShowCase", sf::Style::Default, settings};
+    const double scale = 250;
+    const sf::Vector2f origin{2*scale, 2*scale};
+    sf::RenderWindow window{{4*scale, 4*scale}, "ShowCase", sf::Style::Default, settings};
     window.setFramerateLimit(60);
     sf::Event event;
 
-    MovableArrow arrow;
+    MovableArrow a{10, sf::Color::Red};
+    MovableArrow b{10, sf::Color::Blue};
+    act::ArrowShape c{10, sf::Color::Magenta};
 
     while (window.isOpen())
     {
@@ -75,30 +77,27 @@ int main()
             if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
                 window.close();
 
-            arrow.m_startPoint.processEvent(event);
-            arrow.m_endPoint.processEvent(event);
+            a.m_startPoint.processEvent(event) ||
+            a.m_endPoint.processEvent(event) ||
+            b.m_startPoint.processEvent(event) ||
+            b.m_endPoint.processEvent(event);
+
+            galg::Multivector2 mvA = galg::Multivector2{0, a.m_startPoint.getShape()->getPosition().x - 2*scale, a.m_startPoint.getShape()->getPosition().y - 2*scale, 0} / scale;
+            galg::Multivector2 mvB = galg::Multivector2{0, b.m_startPoint.getShape()->getPosition().x - 2*scale, b.m_startPoint.getShape()->getPosition().y - 2*scale, 0} / scale;
+            galg::Multivector2 mvC = scale*(mvA + mvB);
+
+            c.setStartPosition(mvC.vector().x() + 2*scale, mvC.vector().y() + 2*scale);
+            c.setEndPosition(2*scale, 2*scale);
         }
 
         window.clear(sf::Color::White);
 
-        window.draw(arrow);
+        window.draw(a);
+        window.draw(b);
+        window.draw(c);
         window.display();
     }
 
-    galg::Vec2 a{1,2};
-    galg::Vec2 b{-3,4};
-
-    fmt::print("a = {}, b = {}\n", a, b);
-    fmt::print("a + b = {}\n", a + b);
-    fmt::print("a - b = {}\n", a - b);
-    fmt::print("3*a/2 = {} \n", 3*a/2);
-    fmt::print("a.b = {} \n", galg::dot(a, b));
-    fmt::print("ab = {} = {:.3f}e^(i{:.3f})\n", a * b, std::abs(a*b), std::arg(a * b));
-
-    fmt::print("norm1(b) = {} \n", b.norm1());
-    fmt::print("norm2(b) = {} \n", b.norm2());
-    fmt::print("normP(b, 4) = {} \n", b.normP(4));
-    fmt::print("normInf(b) = {} \n", b.normInf());
     return 0;
 }
 
