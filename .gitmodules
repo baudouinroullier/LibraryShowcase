@@ -10,3 +10,6 @@
 [submodule "libs/Interact"]
 	path = libs/Interact
 	url = git@github.com:baudouinroullier/Interact.git
+[submodule "extlibs/imgui-sfml"]
+	path = extlibs/imgui-sfml
+	url = https://github.com/SFML/imgui-sfml.git
