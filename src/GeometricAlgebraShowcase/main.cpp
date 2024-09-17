@@ -113,9 +113,6 @@ int main()
             galg::Multivector2 mvB = galg::Multivector2{(bEnd - bStart).x, bStart.x - 2 * scale, bStart.y - 2 * scale, (bEnd - bStart).y} / scale;
             galg::Multivector2 mvC = (mvA * mvB);
 
-            fmt::print("{:.3f} * {:.3f} = {:.3f}\n", mvA.vector(), mvB.vector(), mvC.vector());
-            fflush(stdout);
-
             mvC *= scale;
             c.setStartPosition(0, 0);
             c.setEndPosition(mvC.rotor().real(), mvC.rotor().imag());

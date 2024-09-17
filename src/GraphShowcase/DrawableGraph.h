@@ -3,37 +3,41 @@
 
 #include <SFML/Graphics.hpp>
 #include "Graph/algo.h"
-
-struct GraphData
-{
-    struct Node
-    {
-        sf::Vector2i pos;
-        int radius = 10;
-        sf::Color color;
-    };
-
-    struct Edge
-    {
-        double weight = 2;
-        sf::Color color;
-    };
-};
+#include "Interact/Shape.h"
 
 
 class DrawableGraph : public sf::Drawable
 {
 public:
+    struct Data
+    {
+        using Node = act::Shape;
+        // struct Node
+        // {
+        //     sf::Vector2i pos;
+        //     int radius = 10;
+        //     sf::Color color;
+        // };
+
+        struct Edge
+        {
+            double weight = 2;
+            sf::Color color;
+        };
+    };
+
     DrawableGraph();
 
-    void manageMouseEvent(sf::Event::MouseButtonEvent event);
+    void processEvent(sf::Event event);
 
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
+    void _createRelativeNeighborhoodGraph();
+
     sf::Font m_font;
 
-    graph::Graph<GraphData> m_graph;
+    graph::Graph<Data> m_graph;
     std::vector<std::pair<graph::EdgeIdx, graph::NodeIdx>> m_path;
 
     graph::NodeIdx m_start = 0;

@@ -13,6 +13,11 @@ find_library(GRAPH graph PATHS ../../libs/Graph/build)
 target_link_libraries(${EXE_NAME} ${GRAPH})
 target_include_directories(${EXE_NAME} PRIVATE "../../libs/Graph/include")
 
+## Interact lib
+find_library(INTERACT Interact PATHS ../../libs/Interact/build)
+target_link_libraries(${EXE_NAME} ${INTERACT})
+target_include_directories(${EXE_NAME} PRIVATE "../../libs/Interact/include")
+
 ## {fmt}
 find_library(FMT fmt PATHS ../../extlibs/fmt/build)
 target_link_libraries(${EXE_NAME} ${FMT})

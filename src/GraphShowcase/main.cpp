@@ -18,8 +18,8 @@ int main()
         {
             if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
                 window.close();
-            else if (event.type == sf::Event::MouseButtonReleased)
-                dg.manageMouseEvent(event.mouseButton);
+            else
+                dg.processEvent(event);
         }
 
         window.clear(sf::Color::White);
