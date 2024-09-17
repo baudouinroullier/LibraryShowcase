@@ -7,11 +7,6 @@ add_executable(${EXE_NAME}
 set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD 20)
 set_target_properties(${EXE_NAME} PROPERTIES LINKER_LANGUAGE CXX)
 
-## GeometricAlgebra lib
-find_library(GA GeometricAlgebra PATHS ../../libs/GeometricAlgebra/build)
-target_link_libraries(${EXE_NAME} ${GA})
-target_include_directories(${EXE_NAME} PRIVATE "../../libs/GeometricAlgebra/include")
-
 ## {fmt}
 find_library(FMT fmt PATHS ../../extlibs/fmt/build)
 target_link_libraries(${EXE_NAME} ${FMT})
@@ -25,3 +20,8 @@ target_link_libraries(${EXE_NAME} sfml-graphics sfml-window sfml-system)
 find_library(INTERACT Interact PATHS ../../libs/Interact/build)
 target_link_libraries(${EXE_NAME} ${INTERACT})
 target_include_directories(${EXE_NAME} PRIVATE "../../libs/Interact/include")
+
+## GeometricAlgebra lib
+find_library(GA GeometricAlgebra PATHS ../../libs/GeometricAlgebra/build)
+target_link_libraries(${EXE_NAME} ${GA})
+target_include_directories(${EXE_NAME} PRIVATE "../../libs/GeometricAlgebra/include")
