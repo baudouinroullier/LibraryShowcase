@@ -7,28 +7,6 @@
 
 DrawableGraph::DrawableGraph()
 {
-    m_font.loadFromFile("/usr/share/fonts/truetype/fonts-yrsa-rasa/Yrsa-Regular.ttf");
-
-    // std::random_device rd;  // a seed source for the random number engine
-    // std::mt19937 gen(rd()); // mersenne_twister_engine seeded with rd()
-    // std::uniform_int_distribution<> distrib(100, 700);
-
-    // const int N = 50;
-
-    // for (int i=0; i<N; ++i)
-    // {
-    //     act::Shape s;
-    //     auto* c = s.makeShape<sf::CircleShape>(4);
-    //     c->setOrigin(2, 2);
-    //     c->setPosition(distrib(gen), distrib(gen));
-    //     c->setOutlineColor(sf::Color::Black);
-    //     c->setOutlineThickness(2);
-    //     c->setFillColor(sf::Color::White);
-    //     s.makeInteraction<act::Drag>([this](sf::Shape&, bool){});
-    //     m_graph.createNode(std::move(s));
-    // }
-
-    // _createRelativeNeighborhoodGraph();
 }
 
 void DrawableGraph::processEvent(sf::Event event)
@@ -36,7 +14,10 @@ void DrawableGraph::processEvent(sf::Event event)
     for (auto& n : m_graph.nodes())
     {
         if (n.second.data.processEvent(event))
+        {
+            _createRelativeNeighborhoodGraph();
             return;
+        }
     }
     if (event.type == sf::Event::EventType::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Left)
     {
@@ -107,7 +88,8 @@ void DrawableGraph::draw(sf::RenderTarget& target, sf::RenderStates states) cons
 
 void DrawableGraph::_createRelativeNeighborhoodGraph()
 {
-    for (auto& [i,e] : m_graph.edges())
+    auto copy = m_graph.edges();
+    for (auto& [i,e] : copy)
         m_graph.deleteEdge(i);
 
     const int N = m_graph.nodes().size();

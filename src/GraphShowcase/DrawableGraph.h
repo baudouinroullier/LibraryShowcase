@@ -1,7 +1,6 @@
 #ifndef DRAWABLEGRAPH_H
 #define DRAWABLEGRAPH_H
 
-#include <SFML/Graphics.hpp>
 #include "Graph/algo.h"
 #include "Interact/Shape.h"
 
@@ -12,12 +11,6 @@ public:
     struct Data
     {
         using Node = act::Shape;
-        // struct Node
-        // {
-        //     sf::Vector2i pos;
-        //     int radius = 10;
-        //     sf::Color color;
-        // };
 
         struct Edge
         {
@@ -34,8 +27,6 @@ protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;
 
     void _createRelativeNeighborhoodGraph();
-
-    sf::Font m_font;
 
     graph::Graph<Data> m_graph;
     std::vector<std::pair<graph::EdgeIdx, graph::NodeIdx>> m_path;
