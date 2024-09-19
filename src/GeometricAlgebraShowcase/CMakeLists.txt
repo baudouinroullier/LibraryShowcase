@@ -4,24 +4,23 @@ set(EXE_NAME GeometricAlgebraShowcase)
 add_executable(${EXE_NAME}
     main.cpp)
 
-set_property(TARGET ${EXE_NAME} PROPERTY CXX_STANDARD 20)
-set_target_properties(${EXE_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+set_target_properties(${EXE_NAME} PROPERTIES CXX_STANDARD 20 LINKER_LANGUAGE CXX)
 
-## {fmt}
-find_library(FMT fmt PATHS ../../extlibs/fmt/build)
-target_link_libraries(${EXE_NAME} ${FMT})
+foreach(LIB GeometricAlgebra Interact)
+    target_link_libraries(${EXE_NAME} ${LIB})
+    target_include_directories(${EXE_NAME} PRIVATE "../../libs/${LIB}/include")
+endforeach()
+
+## fmt
+target_link_libraries(${EXE_NAME} fmt)
 target_include_directories(${EXE_NAME} PRIVATE "../../extlibs/fmt/include")
-target_compile_definitions(${EXE_NAME} PRIVATE ADD_FMT_FORMATTERS)
+target_compile_definitions(${EXE_NAME} PUBLIC ADD_FMT_FORMATTERS)
 
 ## sfml
 target_link_libraries(${EXE_NAME} sfml-graphics sfml-window sfml-system)
+# target_include_directories(${EXE_NAME} PRIVATE "../../extlibs/SFML/include")
 
-## Interact lib
-find_library(INTERACT Interact PATHS ../../libs/Interact/build)
-target_link_libraries(${EXE_NAME} ${INTERACT})
-target_include_directories(${EXE_NAME} PRIVATE "../../libs/Interact/include")
-
-## GeometricAlgebra lib
-find_library(GA GeometricAlgebra PATHS ../../libs/GeometricAlgebra/build)
-target_link_libraries(${EXE_NAME} ${GA})
-target_include_directories(${EXE_NAME} PRIVATE "../../libs/GeometricAlgebra/include")
+target_compile_options(${EXE_NAME} PUBLIC ${COMPILE_OPTIONS}) # always
+target_compile_options(${EXE_NAME} PUBLIC "$<$<CONFIG:DEBUG>:${DEBUG_COMPILE_OPTIONS}>") # release
+target_compile_options(${EXE_NAME} PUBLIC "$<$<CONFIG:RELEASE>:${RELEASE_COMPILE_OPTIONS}>") # debug
+target_link_options(${EXE_NAME} PUBLIC "$<$<CONFIG:RELEASE>:${RELEASE_LINK_OPTIONS}>") # release

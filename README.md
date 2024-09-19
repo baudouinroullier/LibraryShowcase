@@ -11,7 +11,17 @@ mkdir build
 cd build
 cmake ..
 make
-./test
+```
+
+Then you can start any Showcase, eg GeometricAlgebraShowcase, like this:
+
+```
+./GeometricAlgebraShowcase/GeometricAlgebraShowcase
+```
+
+For SFML, you might need to install the following packages
+```
+sudo apt install libxi-dev libxrandr-dev libxcursor-dev libflac-dev libvorbis-dev
 ```
 
 # Ideas to develop

@@ -7,6 +7,26 @@
 
 DrawableGraph::DrawableGraph()
 {
+    std::random_device rd;  // a seed source for the random number engine
+    std::mt19937 gen(rd()); // mersenne_twister_engine seeded with rd()
+    std::uniform_int_distribution<> distrib(100, 700);
+
+    const int N = 1000;
+
+    for (int i=0; i<N; ++i)
+    {
+        act::Shape s;
+        auto* c = s.makeShape<sf::CircleShape>(4);
+        c->setOrigin(2, 2);
+        c->setPosition(distrib(gen), distrib(gen));
+        c->setOutlineColor(sf::Color::Black);
+        c->setOutlineThickness(2);
+        c->setFillColor(sf::Color::White);
+        s.makeInteraction<act::Drag>([this](sf::Shape&, bool){});
+        m_graph.createNode(std::move(s));
+    }
+
+    _createRelativeNeighborhoodGraph();
 }
 
 void DrawableGraph::processEvent(sf::Event event)
