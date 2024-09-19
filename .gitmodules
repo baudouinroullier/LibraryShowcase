@@ -13,3 +13,6 @@
 [submodule "extlibs/imgui-sfml"]
 	path = extlibs/imgui-sfml
 	url = https://github.com/SFML/imgui-sfml.git
+[submodule "extlibs/SFML"]
+	path = extlibs/SFML
+	url = https://github.com/SFML/SFML.git
