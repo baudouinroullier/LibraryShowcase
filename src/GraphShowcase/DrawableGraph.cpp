@@ -55,7 +55,7 @@ void DrawableGraph::processEvent(sf::Event event)
 
     if (event.type == sf::Event::EventType::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Right)
     {
-        const int N = 50;
+        const int N = m_graph.nodes().size();
         std::random_device rd;  // a seed source for the random number engine
         std::mt19937 gen(rd()); // mersenne_twister_engine seeded with rd()
         std::uniform_int_distribution<> distrib(0, N-1);

@@ -17,9 +17,9 @@ set(DEBUG_COMPILE_OPTIONS "-g")
 set(RELEASE_COMPILE_OPTIONS "-O3" "-ffast-math" "-march=native")
 set(RELEASE_LINK_OPTIONS "-flto")
 
-add_subdirectory(src/GraphShowcase GraphShowcase)
-add_subdirectory(src/GeometricAlgebraShowcase GeometricAlgebraShowcase)
-
+foreach(PROJECT GraphShowcase GeometricAlgebraShowcase BlueVoronoi) # SFMLImGuiShowcase
+    add_subdirectory(src/${PROJECT} ${PROJECT})
+endforeach()
 
 ## libs
 foreach(LIB Graph Interact GeometricAlgebra)
@@ -27,6 +27,6 @@ foreach(LIB Graph Interact GeometricAlgebra)
 endforeach()
 
 ## extlibs
-foreach(LIB fmt) #SFML
+foreach(LIB fmt)
     add_subdirectory(extlibs/${LIB} ${LIB})
 endforeach()

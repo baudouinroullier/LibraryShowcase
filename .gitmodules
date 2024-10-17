@@ -16,3 +16,6 @@
 [submodule "extlibs/SFML"]
 	path = extlibs/SFML
 	url = https://github.com/SFML/SFML.git
+[submodule "extlibs/voronoi"]
+	path = extlibs/voronoi
+	url = https://github.com/JCash/voronoi.git
