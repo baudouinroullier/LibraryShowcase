@@ -17,8 +17,8 @@ DrawableGraph::DrawableGraph()
     {
         act::Shape s;
         auto* c = s.makeShape<sf::CircleShape>(4);
-        c->setOrigin(2, 2);
-        c->setPosition(distrib(gen), distrib(gen));
+        c->setOrigin({2, 2});
+        c->setPosition({distrib(gen), distrib(gen)});
         c->setOutlineColor(sf::Color::Black);
         c->setOutlineThickness(2);
         c->setFillColor(sf::Color::White);
@@ -29,7 +29,7 @@ DrawableGraph::DrawableGraph()
     _createRelativeNeighborhoodGraph();
 }
 
-void DrawableGraph::processEvent(sf::Event event)
+void DrawableGraph::processEvent(std::optional<sf::Event> event)
 {
     for (auto& n : m_graph.nodes())
     {
@@ -39,12 +39,14 @@ void DrawableGraph::processEvent(sf::Event event)
             return;
         }
     }
-    if (event.type == sf::Event::EventType::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Left)
+
+    if (sf::Event::MouseButtonPressed* mousePress = event->getIf<sf::Event::MouseButtonPressed>();
+        mousePress && mousePress->button == sf::Mouse::Button::Left)
     {
         act::Shape s;
         auto* c = s.makeShape<sf::CircleShape>(4);
-        c->setOrigin(2, 2);
-        c->setPosition(event.mouseButton.x, event.mouseButton.y);
+        c->setOrigin({2, 2});
+        c->setPosition(sf::Vector2f{mousePress->position});
         c->setOutlineColor(sf::Color::Black);
         c->setOutlineThickness(2);
         c->setFillColor(sf::Color::White);
@@ -53,7 +55,8 @@ void DrawableGraph::processEvent(sf::Event event)
         _createRelativeNeighborhoodGraph();
     }
 
-    if (event.type == sf::Event::EventType::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Button::Right)
+    if (sf::Event::MouseButtonPressed* mousePress = event->getIf<sf::Event::MouseButtonPressed>();
+        mousePress && mousePress->button == sf::Mouse::Button::Right)
     {
         const int N = m_graph.nodes().size();
         std::random_device rd;  // a seed source for the random number engine
@@ -88,13 +91,13 @@ void DrawableGraph::draw(sf::RenderTarget& target, sf::RenderStates states) cons
     {
         sf::Vector2f d1Pos = m_graph.node(e.startNode).data.getShape()->getPosition();
         sf::Vector2f d2Pos = m_graph.node(e.endNode).data.getShape()->getPosition();
-        double angle = std::atan2(d1Pos.y - d2Pos.y, d1Pos.x - d2Pos.x);
+        sf::Angle angle = sf::radians(std::atan2(d1Pos.y - d2Pos.y, d1Pos.x - d2Pos.x));
         double dist = std::sqrt(std::pow(d1Pos.x-d2Pos.x, 2.)+std::pow(d1Pos.y-d2Pos.y, 2.));
 
         rec.setSize(sf::Vector2f(dist, e.data.weight));
-        rec.setOrigin(dist/2, e.data.weight/2);
-        rec.setPosition((d1Pos.x+d2Pos.x)/2, (d1Pos.y+d2Pos.y)/2);
-        rec.setRotation(180*angle/M_PI);
+        rec.setOrigin({dist/2, e.data.weight/2});
+        rec.setPosition({(d1Pos.x+d2Pos.x)/2, (d1Pos.y+d2Pos.y)/2});
+        rec.setRotation(angle);
         rec.setFillColor(e.data.color);
 
         target.draw(rec, states);

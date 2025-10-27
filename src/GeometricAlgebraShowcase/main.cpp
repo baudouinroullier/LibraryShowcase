@@ -16,18 +16,18 @@ public:
         ArrowShape(width, color)
     {
         sf::CircleShape* s = m_startPoint.makeShape<sf::CircleShape>(width);
-        s->setOrigin(width, width);
+        s->setOrigin({width, width});
         s->setFillColor(sf::Color::Transparent);
         s->setOutlineColor(sf::Color::Black);
         s->setOutlineThickness(4);
-        s->setPosition(500, 500);
+        s->setPosition({500, 500});
 
         sf::CircleShape* e = m_endPoint.makeShape<sf::CircleShape>(width);
-        e->setOrigin(width, width);
+        e->setOrigin({width, width});
         e->setFillColor(sf::Color::Transparent);
         e->setOutlineColor(sf::Color::Black);
         e->setOutlineThickness(2);
-        e->setPosition(750, 500);
+        e->setPosition({750, 500});
 
         m_startPos = {500, 500};
         m_endPos = {750, 500};
@@ -61,14 +61,19 @@ public:
 
 int main()
 {
+    galg::Multivector2 mv1{2, 3, 4, 5};
+    galg::Multivector2 mv2{-mv1.vector(), std::conj(mv1.rotor())};
+
+    fmt::println("{}×{} = {}, {}", mv1, mv2, mv1*mv2, std::norm<double>(mv1.rotor()) - mv1.vector().square_norm2());
+    fflush(stdout);
+
     sf::ContextSettings settings;
-    settings.antialiasingLevel = 8;
+    settings.antiAliasingLevel = 8;
 
     const double scale = 250;
     const sf::Vector2f origin{2*scale, 2*scale};
-    sf::RenderWindow window{{4*scale, 4*scale}, "ShowCase", sf::Style::Default, settings};
+    sf::RenderWindow window{sf::VideoMode{{4*scale, 4*scale}}, "ShowCase", sf::Style::Default, sf::State::Windowed, settings};
     window.setFramerateLimit(60);
-    sf::Event event;
 
     MovableArrow a{10, sf::Color::Red};
     MovableArrow b{10, sf::Color::Blue};
@@ -81,10 +86,10 @@ int main()
     axes[3].setSize({50, 2});
     axes[4].setSize({2, 50});
     axes[5].setSize({2, 50});
-    for (sf::RectangleShape& a : axes)
+    for (sf::RectangleShape& ax : axes)
     {
-        a.setOrigin(a.getSize() / 2.f);
-        a.setFillColor({128,128,128});
+        ax.setOrigin(ax.getSize() / 2.f);
+        ax.setFillColor({128,128,128});
     }
     axes[0].setPosition({2*scale, 2*scale});
     axes[1].setPosition({2*scale, 2*scale});
@@ -95,9 +100,9 @@ int main()
 
     while (window.isOpen())
     {
-        while (window.pollEvent(event))
+        while (const std::optional<sf::Event> event = window.pollEvent())
         {
-            if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+            if (event->is<sf::Event::Closed>() || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
                 window.close();
 
             a.m_startPoint.processEvent(event) ||
@@ -121,8 +126,8 @@ int main()
 
         window.clear(sf::Color::White);
 
-        for (sf::RectangleShape& a : axes)
-            window.draw(a);
+        for (sf::RectangleShape& ax : axes)
+            window.draw(ax);
 
         window.draw(a);
         window.draw(b);

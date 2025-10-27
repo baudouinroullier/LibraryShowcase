@@ -21,7 +21,7 @@ public:
 
     DrawableGraph();
 
-    void processEvent(sf::Event event);
+    void processEvent(std::optional<sf::Event> event);
 
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const;

@@ -17,8 +17,8 @@ target_include_directories(${EXE_NAME} PRIVATE "../../extlibs/fmt/include")
 target_compile_definitions(${EXE_NAME} PUBLIC ADD_FMT_FORMATTERS)
 
 ## sfml
-target_link_libraries(${EXE_NAME} sfml-graphics sfml-window sfml-system)
-# target_include_directories(${EXE_NAME} PRIVATE "../../extlibs/SFML/include")
+target_link_libraries(${EXE_NAME} SFML::Graphics SFML::Window SFML::System)
+target_include_directories(${EXE_NAME} PRIVATE "../../extlibs/SFML/include")
 
 target_compile_options(${EXE_NAME} PUBLIC ${COMPILE_OPTIONS}) # always
 target_compile_options(${EXE_NAME} PUBLIC "$<$<CONFIG:DEBUG>:${DEBUG_COMPILE_OPTIONS}>") # release

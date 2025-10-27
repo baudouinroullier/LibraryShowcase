@@ -110,22 +110,21 @@ int main()
     jcv_diagram_generate(samples.size(), (jcv_point*)samples.data(), &box, nullptr, &diagram);
 
     sf::ContextSettings settings;
-    settings.antialiasingLevel = 8;
+    settings.antiAliasingLevel = 8;
 
-    sf::RenderWindow window{{size, size}, "BlueVoronoi", sf::Style::Default, settings};
+    sf::RenderWindow window{sf::VideoMode{{size, size}}, "BlueVoronoi", sf::Style::Default, sf::State::Windowed, settings};
     window.setFramerateLimit(60);
-    sf::Event event;
+
 
     while (window.isOpen())
     {
-        while (window.pollEvent(event))
+        while (std::optional<sf::Event> event = window.pollEvent())
         {
-            if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+            if (event->is<sf::Event::Closed>() || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
                 window.close();
         }
 
         window.clear(sf::Color::White);
-
 
         {
             sf::VertexArray va{sf::PrimitiveType::Triangles};
@@ -150,15 +149,15 @@ int main()
         }
 
         {
-            double r = 4;
-            sf::CircleShape c{4};
+            float r = 4;
+            sf::CircleShape c{r};
             c.setFillColor(sf::Color::White);
-            c.setOrigin(r, r);
+            c.setOrigin({r, r});
             c.setOutlineColor(sf::Color::Black);
             c.setOutlineThickness(2);
             for (const Sample sample : samples)
             {
-                c.setPosition(sample.x, sample.y);
+                c.setPosition({sample.x, sample.y});
                 window.draw(c);
             }
         }

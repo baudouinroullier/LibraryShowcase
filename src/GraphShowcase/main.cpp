@@ -5,18 +5,17 @@
 int main()
 {
     sf::ContextSettings settings;
-    settings.antialiasingLevel = 8;
+    settings.antiAliasingLevel = 8;
 
-    sf::RenderWindow window{{800, 800}, "ShowCase", sf::Style::Default, settings};
-    sf::Event event;
+    sf::RenderWindow window{sf::VideoMode{{800, 800}}, "Graph", sf::Style::Default, sf::State::Windowed, settings};
 
     DrawableGraph dg;
 
     while (window.isOpen())
     {
-        while (window.pollEvent(event))
+        while (std::optional<sf::Event> event = window.pollEvent())
         {
-            if (event.type == sf::Event::Closed || sf::Keyboard::isKeyPressed(sf::Keyboard::Escape))
+            if (event->is<sf::Event::Closed>() || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
                 window.close();
             else
                 dg.processEvent(event);
