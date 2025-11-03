@@ -72,7 +72,7 @@ int main()
 
     const double scale = 250;
     const sf::Vector2f origin{2*scale, 2*scale};
-    sf::RenderWindow window{sf::VideoMode{{4*scale, 4*scale}}, "ShowCase", sf::Style::Default, sf::State::Windowed, settings};
+    sf::RenderWindow window{sf::VideoMode{{4*scale, 4*scale}}, "GeometricAlgebra", sf::Style::Default, sf::State::Windowed, settings};
     window.setFramerateLimit(60);
 
     MovableArrow a{10, sf::Color::Red};

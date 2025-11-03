@@ -17,7 +17,7 @@ set(DEBUG_COMPILE_OPTIONS "-g")
 set(RELEASE_COMPILE_OPTIONS "-O3" "-ffast-math" "-march=native")
 set(RELEASE_LINK_OPTIONS "-flto")
 
-foreach(PROJECT GraphShowcase GeometricAlgebraShowcase BlueVoronoi OrthoProj) # SFMLImGuiShowcase
+foreach(PROJECT GraphShowcase GeometricAlgebraShowcase BlueVoronoi OrthoProj FluidSim) # SFMLImGuiShowcase
     add_subdirectory(src/${PROJECT} ${PROJECT})
 endforeach()
 
