@@ -23,31 +23,29 @@ struct Edge
     bool isFixed = false;
 };
 
+struct Cell
+{
+    double divergence = 0;
+    double density = 0;
+};
+
 template <int N, int M>
 class Grid
 {
 public:
     Grid()
     {
-        for (int i=0; i<N; ++i)
-            for (int j=0; j<M-1; ++j)
-                vx(i,j) = (rand() % 2000) / 1000. - 1;
+        m_edgesX.front().fill({3, true});
+        m_edgesX.back().fill({3, true});
 
-        m_edgeX.front().fill({0, true});
-        m_edgeX.back().fill({0, true});
 
-        for (int i=0; i<N-1; ++i)
-            for (int j=0; j<M; ++j)
-                vy(i,j) = (rand() % 2000) / 1000. - 1;
+        for (int j=M/4; j<M-1-M/4; ++j)
+            m_edgesX.at(N/2).at(j) = {0, true};
 
         for (int i=0; i<N-1; ++i)
-            m_edgeY.at(i).front() = m_edgeY.at(i).back() = {0, true};
+            m_edgesY.at(i).front() = m_edgesY.at(i).back() = {0, true};
 
-        // vx.at(2).at(2).velocity = 1;
-        // vx.at(5).at(5) = 1;
-        // vx.at(10).at(5) = -1;
-        // vy.at(5).at(10) = 1;
-        // vy.at(10).at(10) = -1;
+        _computeDivergence();
     }
 
     void update(sf::Time dt)
@@ -92,60 +90,91 @@ public:
 
     Edge edgeX(int i, int j) const
     {
-        return m_edgeX.at(i).at(j);
+        return m_edgesX.at(i).at(j);
     }
     Edge edgeY(int i, int j) const
     {
-        return m_edgeY.at(i).at(j);
+        return m_edgesY.at(i).at(j);
     }
     double vx(int i, int j) const
     {
-        return m_edgeX.at(i).at(j).velocity;
+        return m_edgesX.at(i).at(j).velocity;
     }
     double vy(int i, int j) const
     {
-        return m_edgeY.at(i).at(j).velocity;
+        return m_edgesY.at(i).at(j).velocity;
     }
     double div(int i, int j) const
     {
-        return m_div.at(i).at(j);
+        return m_cells.at(i).at(j).divergence;
     }
     double& vx(int i, int j)
     {
-        return m_edgeX.at(i).at(j).velocity;
+        return m_edgesX.at(i).at(j).velocity;
     }
     double& vy(int i, int j)
     {
-        return m_edgeY.at(i).at(j).velocity;
+        return m_edgesY.at(i).at(j).velocity;
     }
     double& div(int i, int j)
     {
-        return m_div.at(i).at(j);
+        return m_cells.at(i).at(j).divergence;
     }
 
 protected:
 
     void _forceNullDivergence()
     {
-        while (_updateDivergence() > 1)
+        while (_computeDivergence() > N*M/10000.)
             _spreadDivergence();
-        _updateDivergence();
+        _computeDivergence();
     }
 
     void _advect(sf::Time dt)
     {
+        auto edgesXtmp = m_edgesX;
+        auto edgesYtmp = m_edgesY;
 
+        for (int i=0; i<N; ++i)
+        {
+            for (int j=0; j<M-1; ++j)
+            {
+                if (m_edgesX.at(i).at(j).isFixed)
+                    continue;
+                sf::Vector2f pos{m_cellSize*i, m_cellSize*(j+.5f)};
+                sf::Vector2f velocity = computeVelocity(pos);
+                sf::Vector2f posPrev = pos - velocity * dt.asSeconds();
+                edgesXtmp.at(i).at(j).velocity = computeVelocity(posPrev).x;
+            }
+        }
+
+        for (int i=0; i<N-1; ++i)
+        {
+            for (int j=0; j<M; ++j)
+            {
+                if (m_edgesY.at(i).at(j).isFixed)
+                    continue;
+                sf::Vector2f pos{m_cellSize*(i+.5f), m_cellSize*j};
+                sf::Vector2f velocity = computeVelocity(pos);
+                sf::Vector2f posPrev = pos - velocity * dt.asSeconds();
+                vy(i,j) = computeVelocity(posPrev).y;
+                edgesYtmp.at(i).at(j).velocity = computeVelocity(posPrev).y;
+            }
+        }
+
+        m_edgesX = edgesXtmp;
+        m_edgesY = edgesYtmp;
     }
 
-    double _updateDivergence()
+    double _computeDivergence()
     {
         double totalDiv = 0;
         for (int i=0; i<N-1; ++i)
         {
             for (int j=0; j<M-1; ++j)
             {
-                div(i,j) = (vx(i+1,j) - vx(i,j)+ vy(i,j+1)- vy(i,j))/m_cellSize;
-                totalDiv += std::abs(m_div.at(i).at(j));
+                div(i,j) = (vx(i+1,j) - vx(i,j)+ vy(i,j+1)- vy(i,j))/2;
+                totalDiv += std::abs(div(i,j));
             }
         }
         return totalDiv;
@@ -157,22 +186,22 @@ protected:
         {
             for (int j=0; j<M-1; ++j)
             {
-                double s = !m_edgeX.at(i+1).at(j).isFixed + !m_edgeX.at(i).at(j).isFixed + !m_edgeY.at(i).at(j+1).isFixed + !m_edgeY.at(i).at(j).isFixed;
+                double s = !m_edgesX.at(i+1).at(j).isFixed + !m_edgesX.at(i).at(j).isFixed + !m_edgesY.at(i).at(j+1).isFixed + !m_edgesY.at(i).at(j).isFixed;
                 if (s == 0)
                     continue;
 
-                double d = 4*m_div.at(i).at(j)/4;
-                m_edgeX.at(i+1).at(j).velocity -= d * !m_edgeX.at(i+1).at(j).isFixed / s;
-                m_edgeX[i][j].velocity += d * !m_edgeX[i][j].isFixed / s;
-                m_edgeY.at(i).at(j+1).velocity -= d * !m_edgeY.at(i).at(j+1).isFixed / s;
-                m_edgeY[i][j].velocity += d * !m_edgeY[i][j].isFixed / s;
+                double d = div(i,j);
+                vx(i+1,j) -= d * !m_edgesX.at(i+1).at(j).isFixed / s;
+                vx(i,j)   += d * !m_edgesX[i][j].isFixed / s;
+                vy(i,j+1) -= d * !m_edgesY.at(i).at(j+1).isFixed / s;
+                vy(i,j)   += d * !m_edgesY[i][j].isFixed / s;
             }
         }
     }
 
-    std::array<std::array<Edge, M-1>, N> m_edgeX;
-    std::array<std::array<Edge, M>, N-1> m_edgeY;
-    std::array<std::array<double, M-1>, N-1> m_div;
+    std::array<std::array<Edge, M-1>, N> m_edgesX;
+    std::array<std::array<Edge, M>, N-1> m_edgesY;
+    std::array<std::array<Cell, M-1>, N-1> m_cells;
 
     const float m_cellSize = 10.f;
 };
@@ -254,13 +283,13 @@ protected:
                 m_cellsVA[_indexOfC(i, j)+2].color = \
                 m_cellsVA[_indexOfC(i, j)+3].color = \
                 m_cellsVA[_indexOfC(i, j)+4].color = \
-                m_cellsVA[_indexOfC(i, j)+5].color = lerp({64, 64, 64}, d > 0 ? sf::Color::Blue : sf::Color::Red, abs(4*d));
+                m_cellsVA[_indexOfC(i, j)+5].color = lerp({64, 64, 64}, d > 0 ? sf::Color::Blue : sf::Color::Red, std::abs(40*d));
             }
         }
 
         states.transform.combine(*this);
         target.draw(m_cellsVA, states);
-        target.draw(m_wallsVA, states);
+        // target.draw(m_wallsVA, states);
     }
     int _indexOfX(int i, int j) const
     {
@@ -300,23 +329,18 @@ int main()
     sf::RenderWindow window{sf::VideoMode{{size, size}}, "FluidSim", sf::Style::Default, sf::State::Windowed, settings};
     window.setFramerateLimit(60);
 
-    Grid<5, 5> grid{};
-    grid.update({});
+    Grid<20, 20> grid{};
     Display display{grid};
     display.translate({5,5});
-    display.scale({20,20});
+    display.scale({4, 4});
 
     act::ArrowShape cursorSpeed{4, sf::Color::Green};
     std::vector<act::ArrowShape> arrows;
-    arrows.assign(17*17, {2, sf::Color::Red});
-    for (int i=0; i<17; ++i)
-    {
-        for (int j=0; j<17; ++j)
-        {
-            arrows.at(17*i+j).setStartPosition({5+20*10*i/4, 5+20*10*j/4});
-            arrows.at(17*i+j).setEndPosition({5+20*10*i/4+10, 5+20*10*j/4+10});
-        }
-    }
+    arrows.assign(41*41, {2, sf::Color::Red});
+
+    sf::Clock clock;
+    double time = 0;
+    int n = 0;
 
     while (window.isOpen())
     {
@@ -340,6 +364,30 @@ int main()
                 cursorSpeed.setEndPosition(sf::Vector2f{mouseMove->position} + 100.f * grid.computeVelocity(mouseInGrid));
             }
         }
+
+        auto dt = clock.restart();
+        grid.update(dt);
+        time += dt.asSeconds();
+        n++;
+        if (n == 100)
+        {
+            fmt::println("fps = {}", n/time); fflush(stdout);
+            n = 0;
+            time = 0;
+        }
+
+        for (int i=0; i<41; ++i)
+        {
+            for (int j=0; j<41; ++j)
+            {
+                sf::Vector2f startPosInGrid{10*i/2., 10*j/2.};
+                sf::Vector2f startPos = display.transformPoint(startPosInGrid);
+                sf::Vector2f endPos = startPos + 10.f * grid.computeVelocity(startPosInGrid);
+                arrows.at(41*i+j).setStartPosition(startPos);
+                arrows.at(41*i+j).setEndPosition(endPos);
+            }
+        }
+
 
         window.clear({45, 45, 45});
         window.draw(display);
