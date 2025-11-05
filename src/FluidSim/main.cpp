@@ -36,7 +36,7 @@ public:
     Grid()
     {
         m_edgesX.front().fill({3, true});
-        m_edgesX.back().fill({3, true});
+        m_edgesX.back() .fill({3, true});
 
 
         for (int j=M/4; j<M-1-M/4; ++j)
@@ -88,6 +88,30 @@ public:
         return {vxx, vyy};
     }
 
+    double computeDensity(sf::Vector2f pos) const
+    {
+        double x = pos.x/m_cellSize;
+        double y = pos.y/m_cellSize;
+
+        if (x < 0 || x > N-1 || y < 0 || y > M-1)
+            return {};
+
+        double i = std::max(std::floor(x-0.5), 0.);
+        double i1 =  std::min(std::floor(x+0.5), N-2.);
+        double j = std::max(std::floor(y-0.5), 0.);
+        double j1 = std::min(std::floor(y+0.5), M-2.);
+
+        // fmt::println("{} {}, {} {} {} {} , {} {} {} {}", x, y, ix, ix1, jx, jx1, iy, iy1, jy, jy1); fflush(stdout);
+
+        double tj = y - j - .5;
+        double ti = x - i - .5;
+
+        double d1 = lerp(density(i,j), density(i1,j), ti);
+        double d2 = lerp(density(i,j1), density(i1,j1), ti);
+        double d = lerp(d1, d2, tj);
+        return d;
+    }
+
     Edge edgeX(int i, int j) const
     {
         return m_edgesX.at(i).at(j);
@@ -108,6 +132,10 @@ public:
     {
         return m_cells.at(i).at(j).divergence;
     }
+    double density(int i, int j) const
+    {
+        return m_cells.at(i).at(j).density;
+    }
     double& vx(int i, int j)
     {
         return m_edgesX.at(i).at(j).velocity;
@@ -119,6 +147,10 @@ public:
     double& div(int i, int j)
     {
         return m_cells.at(i).at(j).divergence;
+    }
+    double& density(int i, int j)
+    {
+        return m_cells.at(i).at(j).density;
     }
 
 protected:
@@ -132,8 +164,9 @@ protected:
 
     void _advect(sf::Time dt)
     {
-        auto edgesXtmp = m_edgesX;
-        auto edgesYtmp = m_edgesY;
+        auto edgesXTmp = m_edgesX;
+        auto edgesYTmp = m_edgesY;
+        auto cellsTmp = m_cells;
 
         for (int i=0; i<N; ++i)
         {
@@ -144,7 +177,7 @@ protected:
                 sf::Vector2f pos{m_cellSize*i, m_cellSize*(j+.5f)};
                 sf::Vector2f velocity = computeVelocity(pos);
                 sf::Vector2f posPrev = pos - velocity * dt.asSeconds();
-                edgesXtmp.at(i).at(j).velocity = computeVelocity(posPrev).x;
+                edgesXTmp.at(i).at(j).velocity = computeVelocity(posPrev).x;
             }
         }
 
@@ -157,13 +190,26 @@ protected:
                 sf::Vector2f pos{m_cellSize*(i+.5f), m_cellSize*j};
                 sf::Vector2f velocity = computeVelocity(pos);
                 sf::Vector2f posPrev = pos - velocity * dt.asSeconds();
-                vy(i,j) = computeVelocity(posPrev).y;
-                edgesYtmp.at(i).at(j).velocity = computeVelocity(posPrev).y;
+                edgesYTmp.at(i).at(j).velocity = computeVelocity(posPrev).y;
             }
         }
 
-        m_edgesX = edgesXtmp;
-        m_edgesY = edgesYtmp;
+        for (int i=0; i<N-1; ++i)
+        {
+            for (int j=0; j<M-1; ++j)
+            {
+                sf::Vector2f pos{m_cellSize*(i+.5f), m_cellSize*(j+.5f)};
+                sf::Vector2f velocity = computeVelocity(pos);
+                sf::Vector2f posPrev = pos - velocity * dt.asSeconds();
+                density(i,j) = computeDensity(posPrev);
+                cellsTmp.at(i).at(j).density = computeDensity(posPrev);
+            }
+        }
+
+
+        m_edgesX = edgesXTmp;
+        m_edgesY = edgesYTmp;
+        m_cells = cellsTmp;
     }
 
     double _computeDivergence()
@@ -277,19 +323,18 @@ protected:
         {
             for (int j=0; j<M-1; ++j)
             {
-                double d = m_grid.div(i,j);
-                m_cellsVA[_indexOfC(i, j)  ].color = \
-                m_cellsVA[_indexOfC(i, j)+1].color = \
-                m_cellsVA[_indexOfC(i, j)+2].color = \
-                m_cellsVA[_indexOfC(i, j)+3].color = \
-                m_cellsVA[_indexOfC(i, j)+4].color = \
-                m_cellsVA[_indexOfC(i, j)+5].color = lerp({64, 64, 64}, d > 0 ? sf::Color::Blue : sf::Color::Red, std::abs(40*d));
+                m_cellsVA[_indexOfC(i, j)  ].color = lerp({64, 64, 64}, sf::Color::White, std::pow(m_grid.computeDensity(m_cellsVA[_indexOfC(i, j)].position),2.));
+                m_cellsVA[_indexOfC(i, j)+1].color = lerp({64, 64, 64}, sf::Color::White, std::pow(m_grid.computeDensity(m_cellsVA[_indexOfC(i, j)+1].position),2.));
+                m_cellsVA[_indexOfC(i, j)+2].color = lerp({64, 64, 64}, sf::Color::White, std::pow(m_grid.computeDensity(m_cellsVA[_indexOfC(i, j)+2].position),2.));
+                m_cellsVA[_indexOfC(i, j)+3].color = lerp({64, 64, 64}, sf::Color::White, std::pow(m_grid.computeDensity(m_cellsVA[_indexOfC(i, j)+3].position),2.));
+                m_cellsVA[_indexOfC(i, j)+4].color = lerp({64, 64, 64}, sf::Color::White, std::pow(m_grid.computeDensity(m_cellsVA[_indexOfC(i, j)+4].position),2.));
+                m_cellsVA[_indexOfC(i, j)+5].color = lerp({64, 64, 64}, sf::Color::White, std::pow(m_grid.computeDensity(m_cellsVA[_indexOfC(i, j)+5].position),2.));
             }
         }
 
         states.transform.combine(*this);
         target.draw(m_cellsVA, states);
-        // target.draw(m_wallsVA, states);
+        target.draw(m_wallsVA, states);
     }
     int _indexOfX(int i, int j) const
     {
@@ -327,16 +372,16 @@ int main()
     settings.antiAliasingLevel = 0;
 
     sf::RenderWindow window{sf::VideoMode{{size, size}}, "FluidSim", sf::Style::Default, sf::State::Windowed, settings};
-    window.setFramerateLimit(60);
+    // window.setFramerateLimit(60);
 
-    Grid<20, 20> grid{};
+    Grid<40, 40> grid{};
     Display display{grid};
     display.translate({5,5});
-    display.scale({4, 4});
+    display.scale({2, 2});
 
     act::ArrowShape cursorSpeed{4, sf::Color::Green};
-    std::vector<act::ArrowShape> arrows;
-    arrows.assign(41*41, {2, sf::Color::Red});
+    // std::vector<act::ArrowShape> arrows;
+    // arrows.assign(41*41, {2, sf::Color::Red});
 
     sf::Clock clock;
     double time = 0;
@@ -346,7 +391,10 @@ int main()
     {
         while (const std::optional<sf::Event> event = window.pollEvent())
         {
-            if (event->is<sf::Event::Closed>() || sf::Keyboard::isKeyPressed(sf::Keyboard::Key::Escape))
+            if (event->is<sf::Event::Closed>())
+                window.close();
+            if (const sf::Event::KeyPressed* keyPress = event->getIf<sf::Event::KeyPressed>();
+                keyPress && keyPress->code == sf::Keyboard::Key::Escape)
                 window.close();
             if (const sf::Event::MouseWheelScrolled* mouseWheel = event->getIf<sf::Event::MouseWheelScrolled>();
                 mouseWheel)
@@ -363,10 +411,16 @@ int main()
                 cursorSpeed.setStartPosition(sf::Vector2f{mouseMove->position});
                 cursorSpeed.setEndPosition(sf::Vector2f{mouseMove->position} + 100.f * grid.computeVelocity(mouseInGrid));
             }
+            if (const sf::Event::MouseButtonPressed* mousePress = event->getIf<sf::Event::MouseButtonPressed>();
+                mousePress)
+            {
+                grid.density(0,19) = 2;
+            }
         }
 
         auto dt = clock.restart();
-        grid.update(dt);
+        for (int i=0; i<4; ++i)
+            grid.update(dt);
         time += dt.asSeconds();
         n++;
         if (n == 100)
@@ -376,23 +430,23 @@ int main()
             time = 0;
         }
 
-        for (int i=0; i<41; ++i)
-        {
-            for (int j=0; j<41; ++j)
-            {
-                sf::Vector2f startPosInGrid{10*i/2., 10*j/2.};
-                sf::Vector2f startPos = display.transformPoint(startPosInGrid);
-                sf::Vector2f endPos = startPos + 10.f * grid.computeVelocity(startPosInGrid);
-                arrows.at(41*i+j).setStartPosition(startPos);
-                arrows.at(41*i+j).setEndPosition(endPos);
-            }
-        }
+        // for (int i=0; i<41; ++i)
+        // {
+        //     for (int j=0; j<41; ++j)
+        //     {
+        //         sf::Vector2f startPosInGrid{10*i/2., 10*j/2.};
+        //         sf::Vector2f startPos = display.transformPoint(startPosInGrid);
+        //         sf::Vector2f endPos = startPos + 10.f * grid.computeVelocity(startPosInGrid);
+        //         arrows.at(41*i+j).setStartPosition(startPos);
+        //         arrows.at(41*i+j).setEndPosition(endPos);
+        //     }
+        // }
 
 
         window.clear({45, 45, 45});
         window.draw(display);
-        for (const auto& a : arrows)
-            window.draw(a);
+        // for (const auto& a : arrows)
+        //     window.draw(a);
         window.draw(cursorSpeed);
         window.display();
     }
