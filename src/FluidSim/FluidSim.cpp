@@ -22,14 +22,14 @@ FluidSim::FluidSim()
     // edgeY(N/2 - 1, M - 2 - M / 4) = {0, false};
 
     for (int i = 0; i < N - 1; ++i)
-        m_edgesY.at(i).front() = m_edgesY.at(i).back() = {0, false};
+        m_edgesY[i].front() = m_edgesY[i].back() = {0, false};
 
 
     for (int i = 0; i < N - 1; ++i)
     {
         for (int j = 0; j < M - 1; ++j)
         {
-            m_cells.at(i).at(j).freeNeigbours = edgeX(i + 1, j).isFree + edgeX(i, j).isFree + edgeY(i, j + 1).isFree + edgeY(i, j).isFree;
+            m_cells[i][j].freeNeigbours = edgeX(i + 1, j).isFree + edgeX(i, j).isFree + edgeY(i, j + 1).isFree + edgeY(i, j).isFree;
         }
     }
 
@@ -117,62 +117,62 @@ float FluidSim::computeDensity(sf::Vector2f pos) const
 
 Edge FluidSim::edgeX(int i, int j) const
 {
-    return m_edgesX.at(i).at(j);
+    return m_edgesX[i][j];
 }
 
 Edge FluidSim::edgeY(int i, int j) const
 {
-    return m_edgesY.at(i).at(j);
+    return m_edgesY[i][j];
 }
 
 float FluidSim::vx(int i, int j) const
 {
-    return m_edgesX.at(i).at(j).velocity;
+    return m_edgesX[i][j].velocity;
 }
 
 float FluidSim::vy(int i, int j) const
 {
-    return m_edgesY.at(i).at(j).velocity;
+    return m_edgesY[i][j].velocity;
 }
 
 float FluidSim::div(int i, int j) const
 {
-    return m_cells.at(i).at(j).divergence;
+    return m_cells[i][j].divergence;
 }
 
 float FluidSim::density(int i, int j) const
 {
-    return m_cells.at(i).at(j).density;
+    return m_cells[i][j].density;
 }
 
 Edge& FluidSim::edgeX(int i, int j)
 {
-    return m_edgesX.at(i).at(j);
+    return m_edgesX[i][j];
 }
 
 Edge& FluidSim::edgeY(int i, int j)
 {
-    return m_edgesY.at(i).at(j);
+    return m_edgesY[i][j];
 }
 
 float& FluidSim::vx(int i, int j)
 {
-    return m_edgesX.at(i).at(j).velocity;
+    return m_edgesX[i][j].velocity;
 }
 
 float& FluidSim::vy(int i, int j)
 {
-    return m_edgesY.at(i).at(j).velocity;
+    return m_edgesY[i][j].velocity;
 }
 
 float& FluidSim::div(int i, int j)
 {
-    return m_cells.at(i).at(j).divergence;
+    return m_cells[i][j].divergence;
 }
 
 float& FluidSim::density(int i, int j)
 {
-    return m_cells.at(i).at(j).density;
+    return m_cells[i][j].density;
 }
 
 void FluidSim::_forceNullDivergence()
@@ -193,8 +193,8 @@ void FluidSim::_advect(sf::Time dt)
 
     // fmt::println("adv copy {}", perf.restart().asMicroseconds());
 
-    float totalDensity = 0;
-    float totalDiv = 0;
+    // float totalDensity = 0;
+    // float totalDiv = 0;
 
     for (int i = 0; i < N - 1; ++i)
     {
@@ -204,8 +204,8 @@ void FluidSim::_advect(sf::Time dt)
             // sf::Vector2f velocity = computeVelocity(pos);
             sf::Vector2f velocity{vx(i, j) + vx(i + 1, j), vy(i, j) + vy(i, j + 1)};
             sf::Vector2f posPrev = pos - velocity * .5f * dt.asSeconds();
-            totalDensity += cellsTmp.at(i).at(j).density = computeDensity(posPrev);
-            totalDiv += cellsTmp.at(i).at(j).divergence;
+            /*totalDensity += */cellsTmp[i][j].density = computeDensity(posPrev);
+            // totalDiv += cellsTmp[i][j].divergence;
         }
     }
 
@@ -220,7 +220,7 @@ void FluidSim::_advect(sf::Time dt)
             sf::Vector2f pos{m_cellSize * i, m_cellSize * (j + .5f)};
             sf::Vector2f velocity = {vx(i, j), computeVelocityY(pos)};
             sf::Vector2f posPrev = pos - velocity * dt.asSeconds();
-            edgesXTmp.at(i).at(j).velocity = computeVelocity(posPrev).x;
+            edgesXTmp[i][j].velocity = computeVelocity(posPrev).x;
         }
     }
     // fmt::println("adv vx {}", perf.restart().asMicroseconds());
@@ -234,7 +234,7 @@ void FluidSim::_advect(sf::Time dt)
             sf::Vector2f pos{m_cellSize * (i + .5f), m_cellSize * j};
             sf::Vector2f velocity = {computeVelocityX(pos), vy(i, j)};
             sf::Vector2f posPrev = pos - velocity * dt.asSeconds();
-            edgesYTmp.at(i).at(j).velocity = computeVelocity(posPrev).y;
+            edgesYTmp[i][j].velocity = computeVelocity(posPrev).y;
         }
     }
     // fmt::println("adv vy {}", perf.restart().asMicroseconds());
@@ -266,7 +266,7 @@ void FluidSim::_spreadDivergence()
     {
         for (int j = 0; j < M - 1; ++j)
         {
-            float s = m_cells.at(i).at(j).freeNeigbours;
+            float s = m_cells[i][j].freeNeigbours;
             if (s == 0)
                 continue;
 
