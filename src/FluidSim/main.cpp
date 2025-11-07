@@ -49,9 +49,6 @@ int main()
             },
             [&](const sf::Event::MouseButtonPressed&){ fluidSim.density(1,17) += 1; fluidSim.density(1,21) += 1; fluidSim.density(25,19) += 1; });
 
-        for (int i=0; i<100; ++i)
-            fluidSim.update(sf::seconds(0.01));
-
         if (clock.getElapsedTime() > sf::seconds(1/30.))
         {
             clock.restart();
@@ -76,6 +73,10 @@ int main()
 
             fflush(stdout);
         }
+
+
+        for (int i=0; i<100; ++i)
+            fluidSim.update(sf::seconds(0.01));
     }
 
     return 0;

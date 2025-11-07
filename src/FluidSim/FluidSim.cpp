@@ -9,18 +9,29 @@ sf::Color operator*(sf::Color lhs, float s)
 
 FluidSim::FluidSim()
 {
-    m_edgesX.front().fill({1, true});
-    m_edgesX.back().fill({1, true});
+    m_edgesX.front().fill({1, false});
+    m_edgesX.back().fill({1, false});
 
 
     for (int j = M / 4; j < M - 1 - M / 4; ++j)
     {
-        edgeX(N / 2, j) = {0, true};
-        edgeX(N / 2 - 1, j) = {0, true};
+        edgeX(N/2, j) = {0, false};
+        edgeX(N/2 - 1, j) = {0, false};
     }
+    // edgeY(N/2 - 1, M/4) = {0, false};
+    // edgeY(N/2 - 1, M - 2 - M / 4) = {0, false};
 
     for (int i = 0; i < N - 1; ++i)
-        m_edgesY.at(i).front() = m_edgesY.at(i).back() = {0, true};
+        m_edgesY.at(i).front() = m_edgesY.at(i).back() = {0, false};
+
+
+    for (int i = 0; i < N - 1; ++i)
+    {
+        for (int j = 0; j < M - 1; ++j)
+        {
+            m_cells.at(i).at(j).freeNeigbours = edgeX(i + 1, j).isFree + edgeX(i, j).isFree + edgeY(i, j + 1).isFree + edgeY(i, j).isFree;
+        }
+    }
 
     _computeDivergence();
 }
@@ -29,9 +40,9 @@ void FluidSim::update(sf::Time dt)
 {
     sf::Clock perf;
     _advect(dt);
-    // fmt::println("advect {}", perf.restart().asMicroseconds());
+    fmt::println("advect {}", perf.restart().asMicroseconds());
     _forceNullDivergence();
-    // fmt::println("forceNullDivergence {}", perf.restart().asMicroseconds());
+    fmt::println("forceNullDivergence {}", perf.restart().asMicroseconds());
 }
 
 float FluidSim::computeVelocityX(sf::Vector2f pos) const
@@ -204,7 +215,7 @@ void FluidSim::_advect(sf::Time dt)
     {
         for (int j = 0; j < M - 1; ++j)
         {
-            if (edgeX(i, j).isFixed)
+            if (!edgeX(i, j).isFree)
                 continue;
             sf::Vector2f pos{m_cellSize * i, m_cellSize * (j + .5f)};
             sf::Vector2f velocity = {vx(i, j), computeVelocityY(pos)};
@@ -218,7 +229,7 @@ void FluidSim::_advect(sf::Time dt)
     {
         for (int j = 0; j < M; ++j)
         {
-            if (edgeY(i, j).isFixed)
+            if (!edgeY(i, j).isFree)
                 continue;
             sf::Vector2f pos{m_cellSize * (i + .5f), m_cellSize * j};
             sf::Vector2f velocity = {computeVelocityX(pos), vy(i, j)};
@@ -255,15 +266,15 @@ void FluidSim::_spreadDivergence()
     {
         for (int j = 0; j < M - 1; ++j)
         {
-            float s = !edgeX(i + 1, j).isFixed + !edgeX(i, j).isFixed + !edgeY(i, j + 1).isFixed + !edgeY(i, j).isFixed;
+            float s = m_cells.at(i).at(j).freeNeigbours;
             if (s == 0)
                 continue;
 
             float d = 2 * div(i, j);
-            vx(i + 1, j) -= d * !edgeX(i + 1, j).isFixed / s;
-            vx(i, j) += d * !edgeX(i, j).isFixed / s;
-            vy(i, j + 1) -= d * !edgeY(i, j + 1).isFixed / s;
-            vy(i, j) += d * !edgeY(i, j).isFixed / s;
+            vx(i + 1, j) -= d * edgeX(i + 1, j).isFree / s;
+            vx(i, j) += d * edgeX(i, j).isFree / s;
+            vy(i, j + 1) -= d * edgeY(i, j + 1).isFree / s;
+            vy(i, j) += d * edgeY(i, j).isFree / s;
         }
     }
 }

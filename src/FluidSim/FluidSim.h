@@ -17,13 +17,14 @@ T lerp(const T a, const T b, float t)
 struct Edge
 {
     float velocity = 0;
-    bool isFixed = false;
+    bool isFree = true;
 };
 
 struct Cell
 {
     float divergence = 0;
     float density = 0;
+    int freeNeigbours = 0;
 };
 
 // template <int _N, int _M>

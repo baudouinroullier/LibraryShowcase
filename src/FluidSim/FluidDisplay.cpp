@@ -25,7 +25,7 @@ void FluidDisplay::draw(sf::RenderTarget& target, sf::RenderStates states) const
     {
         for (int j = 0; j < M - 1; ++j)
         {
-            if (const auto [v, fixed] = m_sim.edgeX(i, j); fixed && v == 0)
+            if (const auto [v, free] = m_sim.edgeX(i, j); !free && v == 0)
             {
                 m_wallsVA[_indexOfX(i, j)].position = sf::Vector2f{m_cellSize * i, m_cellSize * (j)};
                 m_wallsVA[_indexOfX(i, j) + 1].position = sf::Vector2f{m_cellSize * i, m_cellSize * (j + 1)};
@@ -45,7 +45,7 @@ void FluidDisplay::draw(sf::RenderTarget& target, sf::RenderStates states) const
     {
         for (int j = 0; j < M; ++j)
         {
-            if (const auto [v, fixed] = m_sim.edgeY(i, j); fixed && v == 0)
+            if (const auto [v, free] = m_sim.edgeY(i, j); !free && v == 0)
             {
                 m_wallsVA[_indexOfY(i, j)].position = sf::Vector2f{m_cellSize * (i), m_cellSize * j};
                 m_wallsVA[_indexOfY(i, j) + 1].position = sf::Vector2f{m_cellSize * (i + 1), m_cellSize * j};
