@@ -18,8 +18,6 @@ FluidSim::FluidSim()
         edgeX(N/2, j) = {0, false};
         edgeX(N/2 - 1, j) = {0, false};
     }
-    // edgeY(N/2 - 1, M/4) = {0, false};
-    // edgeY(N/2 - 1, M - 2 - M / 4) = {0, false};
 
     for (int i = 0; i < N - 1; ++i)
         m_edgesY[i].front() = m_edgesY[i].back() = {0, false};
@@ -38,11 +36,8 @@ FluidSim::FluidSim()
 
 void FluidSim::update(sf::Time dt)
 {
-    sf::Clock perf;
     _advect(dt);
-    fmt::println("advect {}", perf.restart().asMicroseconds());
     _forceNullDivergence();
-    fmt::println("forceNullDivergence {}", perf.restart().asMicroseconds());
 }
 
 float FluidSim::computeVelocityX(sf::Vector2f pos) const
@@ -177,39 +172,30 @@ float& FluidSim::density(int i, int j)
 
 void FluidSim::_forceNullDivergence()
 {
-    fmt::println("div {}", _computeDivergence());
-    while (_computeDivergence() > N * M / 10000.)
+    double div = _computeDivergence();
+    while (div > N * M / 5000.)
+    {
         _spreadDivergence();
-    _computeDivergence();
+        div = _computeDivergence();
+    }
 }
 
 void FluidSim::_advect(sf::Time dt)
 {
-    // sf::Clock perf;
-
     auto edgesXTmp = m_edgesX;
     auto edgesYTmp = m_edgesY;
     auto cellsTmp = m_cells;
-
-    // fmt::println("adv copy {}", perf.restart().asMicroseconds());
-
-    // float totalDensity = 0;
-    // float totalDiv = 0;
 
     for (int i = 0; i < N - 1; ++i)
     {
         for (int j = 0; j < M - 1; ++j)
         {
             sf::Vector2f pos{m_cellSize * (i + .5f), m_cellSize * (j + .5f)};
-            // sf::Vector2f velocity = computeVelocity(pos);
             sf::Vector2f velocity{vx(i, j) + vx(i + 1, j), vy(i, j) + vy(i, j + 1)};
             sf::Vector2f posPrev = pos - velocity * .5f * dt.asSeconds();
-            /*totalDensity += */cellsTmp[i][j].density = computeDensity(posPrev);
-            // totalDiv += cellsTmp[i][j].divergence;
+            cellsTmp[i][j].density = computeDensity(posPrev);
         }
     }
-
-    // fmt::println("adv density {}", perf.restart().asMicroseconds());
 
     for (int i = 0; i < N; ++i)
     {
@@ -223,7 +209,6 @@ void FluidSim::_advect(sf::Time dt)
             edgesXTmp[i][j].velocity = computeVelocity(posPrev).x;
         }
     }
-    // fmt::println("adv vx {}", perf.restart().asMicroseconds());
 
     for (int i = 0; i < N - 1; ++i)
     {
@@ -237,13 +222,10 @@ void FluidSim::_advect(sf::Time dt)
             edgesYTmp[i][j].velocity = computeVelocity(posPrev).y;
         }
     }
-    // fmt::println("adv vy {}", perf.restart().asMicroseconds());
 
     m_edgesX = edgesXTmp;
     m_edgesY = edgesYTmp;
     m_cells = cellsTmp;
-
-    // fmt::println("adv cp2 {}", perf.restart().asMicroseconds());
 }
 
 float FluidSim::_computeDivergence()
