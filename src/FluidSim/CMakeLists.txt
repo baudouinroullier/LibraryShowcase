@@ -2,7 +2,8 @@ cmake_minimum_required(VERSION 3.28)
 
 set(EXE_NAME FluidSim)
 add_executable(${EXE_NAME}
-    main.cpp)
+    main.cpp
+    FluidSim.h FluidSim.cpp)
 
 set_target_properties(${EXE_NAME} PROPERTIES CXX_STANDARD 23 LINKER_LANGUAGE CXX)
 
