@@ -177,7 +177,7 @@ float& FluidSim::density(int i, int j)
 
 void FluidSim::_forceNullDivergence()
 {
-    // fmt::println("div {}", _computeDivergence());
+    fmt::println("div {}", _computeDivergence());
     while (_computeDivergence() > N * M / 10000.)
         _spreadDivergence();
     _computeDivergence();

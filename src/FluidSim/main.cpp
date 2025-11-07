@@ -74,9 +74,7 @@ int main()
             fflush(stdout);
         }
 
-
-        for (int i=0; i<100; ++i)
-            fluidSim.update(sf::seconds(0.01));
+        fluidSim.update(sf::seconds(0.01));
     }
 
     return 0;
