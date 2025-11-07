@@ -14,7 +14,7 @@ set(COMPILE_OPTIONS
     "-fno-omit-frame-pointer" #"-fsanitize=address,undefined"
     "-U_FORTIFY_SOURCE")
 set(DEBUG_COMPILE_OPTIONS "-g")
-set(RELEASE_COMPILE_OPTIONS "-g")
+set(RELEASE_COMPILE_OPTIONS "-g" "-O3" "-ffast-math" "-march=native")
 # set(RELEASE_COMPILE_OPTIONS "-O3" "-ffast-math" "-march=native")
 set(RELEASE_LINK_OPTIONS "-g")
 # set(RELEASE_LINK_OPTIONS "-flto")
