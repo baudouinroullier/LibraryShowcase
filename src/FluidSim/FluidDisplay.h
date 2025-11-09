@@ -25,7 +25,6 @@ protected:
 
     mutable sf::VertexArray m_wallsVA{sf::PrimitiveType::Lines, 2*(2*M*N-N-M)};
     mutable sf::VertexArray m_cellsVA{sf::PrimitiveType::Triangles, 6*(M-1)*(N-1)};
-    const float m_cellSize = 10.f;
 };
 
 #endif // FLUIDDISPLAY_H

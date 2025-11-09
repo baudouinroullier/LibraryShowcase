@@ -8,14 +8,14 @@ FluidDisplay::FluidDisplay(const FluidSim& sim) :
     {
         for (int j = 0; j < M-1; ++j)
         {
-            float cellBorder = 0;
+            float cellBorder = 0.05f;
             int idx = _indexOfC(i, j);
-            m_cellsVA[idx    ].position = sf::Vector2f{m_cellSize * i       + cellBorder, m_cellSize * j       + cellBorder};
-            m_cellsVA[idx + 1].position = sf::Vector2f{m_cellSize * (i + 1) - cellBorder, m_cellSize * j       + cellBorder};
-            m_cellsVA[idx + 2].position = sf::Vector2f{m_cellSize * i       + cellBorder, m_cellSize * (j + 1) - cellBorder};
-            m_cellsVA[idx + 3].position = sf::Vector2f{m_cellSize * (i + 1) - cellBorder, m_cellSize * j       + cellBorder};
-            m_cellsVA[idx + 4].position = sf::Vector2f{m_cellSize * i       + cellBorder, m_cellSize * (j + 1) - cellBorder};
-            m_cellsVA[idx + 5].position = sf::Vector2f{m_cellSize * (i + 1) - cellBorder, m_cellSize * (j + 1) - cellBorder};
+            m_cellsVA[idx    ].position = sf::Vector2f{i     + cellBorder, j     + cellBorder};
+            m_cellsVA[idx + 1].position = sf::Vector2f{i + 1 - cellBorder, j     + cellBorder};
+            m_cellsVA[idx + 2].position = sf::Vector2f{i     + cellBorder, j + 1 - cellBorder};
+            m_cellsVA[idx + 3].position = sf::Vector2f{i + 1 - cellBorder, j     + cellBorder};
+            m_cellsVA[idx + 4].position = sf::Vector2f{i     + cellBorder, j + 1 - cellBorder};
+            m_cellsVA[idx + 5].position = sf::Vector2f{i + 1 - cellBorder, j + 1 - cellBorder};
         }
     }
 }
@@ -29,8 +29,8 @@ void FluidDisplay::draw(sf::RenderTarget& target, sf::RenderStates states) const
             if (const auto [v, free] = m_sim.edgeX(i, j); !free && v == 0)
             {
                 int idx = _indexOfX(i, j);
-                m_wallsVA[idx + 0].position = sf::Vector2f{m_cellSize * i, m_cellSize * (j)};
-                m_wallsVA[idx + 1].position = sf::Vector2f{m_cellSize * i, m_cellSize * (j + 1)};
+                m_wallsVA[idx + 0].position = sf::Vector2f{i, j};
+                m_wallsVA[idx + 1].position = sf::Vector2f{i, j + 1};
                 m_wallsVA[idx + 0].color = sf::Color::Black;
                 m_wallsVA[idx + 1].color = sf::Color::Black;
             }
@@ -50,8 +50,8 @@ void FluidDisplay::draw(sf::RenderTarget& target, sf::RenderStates states) const
             if (const auto [v, free] = m_sim.edgeY(i, j); !free && v == 0)
             {
                 int idx = _indexOfY(i, j);
-                m_wallsVA[idx + 0].position = sf::Vector2f{m_cellSize * (i), m_cellSize * j};
-                m_wallsVA[idx + 1].position = sf::Vector2f{m_cellSize * (i + 1), m_cellSize * j};
+                m_wallsVA[idx + 0].position = sf::Vector2f{i, j};
+                m_wallsVA[idx + 1].position = sf::Vector2f{i + 1, j};
                 m_wallsVA[idx + 0].color = sf::Color::Black;
                 m_wallsVA[idx + 1].color = sf::Color::Black;
             }

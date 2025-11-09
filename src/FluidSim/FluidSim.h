@@ -67,12 +67,13 @@ protected:
     float _computeDivergence();
 
     void _spreadDivergence();
+    void _spreadDivergenceRed();
+    void _spreadDivergenceBlack();
+    void _spreadDivergence(int i, int j);
 
     std::array<std::array<Edge, M-1>, N> m_edgesX;
     std::array<std::array<Edge, M>, N-1> m_edgesY;
     std::array<std::array<Cell, M-1>, N-1> m_cells;
-
-    const float m_cellSize = 10.f;
 };
 
 #endif // FLUIDSIM_H

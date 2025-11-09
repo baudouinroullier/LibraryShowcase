@@ -1,4 +1,5 @@
 #include "FluidSim.h"
+#include <future>
 
 sf::Color operator*(sf::Color lhs, float s)
 {
@@ -11,7 +12,6 @@ FluidSim::FluidSim()
 {
     m_edgesX.front().fill({1, false});
     m_edgesX.back().fill({1, false});
-
 
     for (int j = M / 4; j < M - 1 - M / 4; ++j)
     {
@@ -42,19 +42,16 @@ void FluidSim::update(sf::Time dt)
 
 float FluidSim::computeVelocityX(sf::Vector2f pos) const
 {
-    float x = pos.x / m_cellSize;
-    float y = pos.y / m_cellSize;
-
-    if (x < 0 || x > N - 1 || y < 0 || y > M - 1)
+    if (pos.x < 0 || pos.x > N - 1 || pos.y < 0 || pos.y > M - 1)
         return {};
 
-    float i = std::floor(x);
+    float i = std::floor(pos.x);
     float i1 = std::min(i + 1, N - 1.f);
-    float j = std::max(std::floor(y - 0.5), 0.);
-    float j1 = std::min(std::floor(y + 0.5f), M - 2.f);
+    float j = std::max(std::floor(pos.y - 0.5), 0.);
+    float j1 = std::min(std::floor(pos.y + 0.5f), M - 2.f);
 
-    float ti = x - i;
-    float tj = y - j - .5f;
+    float ti = pos.x - i;
+    float tj = pos.y - j - .5f;
 
     float v1 = lerp(vx(i, j), vx(i1, j), ti);
     float v2 = lerp(vx(i, j1), vx(i1, j1), ti);
@@ -63,19 +60,16 @@ float FluidSim::computeVelocityX(sf::Vector2f pos) const
 
 float FluidSim::computeVelocityY(sf::Vector2f pos) const
 {
-    float x = pos.x / m_cellSize;
-    float y = pos.y / m_cellSize;
-
-    if (x < 0 || x > N - 1 || y < 0 || y > M - 1)
+    if (pos.x < 0 || pos.x > N - 1 || pos.y < 0 || pos.y > M - 1)
         return {};
 
-    float i = std::max(std::floor(x - 0.5), 0.);
-    float i1 = std::min(std::floor(x + 0.5f), N - 2.f);
-    float j = std::floor(y);
+    float i = std::max(std::floor(pos.x - 0.5), 0.);
+    float i1 = std::min(std::floor(pos.x + 0.5f), N - 2.f);
+    float j = std::floor(pos.y);
     float j1 = std::min(j + 1, M - 1.f);
 
-    float ti = x - i - .5f;
-    float tj = y - j;
+    float ti = pos.x - i - .5f;
+    float tj = pos.y - j;
 
     float v1 = lerp(vy(i, j), vy(i1, j), ti);
     float v2 = lerp(vy(i, j1), vy(i1, j1), ti);
@@ -89,19 +83,16 @@ sf::Vector2f FluidSim::computeVelocity(sf::Vector2f pos) const
 
 float FluidSim::computeDensity(sf::Vector2f pos) const
 {
-    float x = pos.x / m_cellSize;
-    float y = pos.y / m_cellSize;
-
-    if (x < 0 || x > N - 1 || y < 0 || y > M - 1)
+    if (pos.x < 0 || pos.x > N - 1 || pos.y < 0 || pos.y > M - 1)
         return {};
 
-    float i = std::max(std::floor(x - 0.5), 0.);
-    float i1 = std::min(std::floor(x + 0.5), N - 2.);
-    float j = std::max(std::floor(y - 0.5), 0.);
-    float j1 = std::min(std::floor(y + 0.5), M - 2.);
+    float i = std::max(std::floor(pos.x - 0.5), 0.);
+    float i1 = std::min(std::floor(pos.x + 0.5), N - 2.);
+    float j = std::max(std::floor(pos.y - 0.5), 0.);
+    float j1 = std::min(std::floor(pos.y + 0.5), M - 2.);
 
-    float ti = x - i - .5;
-    float tj = y - j - .5;
+    float ti = pos.x - i - .5;
+    float tj = pos.y - j - .5;
 
     float d1 = lerp(density(i, j), density(i1, j), ti);
     float d2 = lerp(density(i, j1), density(i1, j1), ti);
@@ -172,12 +163,15 @@ float& FluidSim::density(int i, int j)
 
 void FluidSim::_forceNullDivergence()
 {
+    int n=0;
     double div = _computeDivergence();
     while (div > N * M / 5000.)
     {
+        n++;
         _spreadDivergence();
         div = _computeDivergence();
     }
+    // fmt::println("{} {}", n, div);
 }
 
 void FluidSim::_advect(sf::Time dt)
@@ -190,7 +184,7 @@ void FluidSim::_advect(sf::Time dt)
     {
         for (int j = 0; j < M - 1; ++j)
         {
-            sf::Vector2f pos{m_cellSize * (i + .5f), m_cellSize * (j + .5f)};
+            sf::Vector2f pos{i + .5f, j + .5f};
             sf::Vector2f velocity{vx(i, j) + vx(i + 1, j), vy(i, j) + vy(i, j + 1)};
             sf::Vector2f posPrev = pos - velocity * .5f * dt.asSeconds();
             cellsTmp[i][j].density = computeDensity(posPrev);
@@ -203,7 +197,7 @@ void FluidSim::_advect(sf::Time dt)
         {
             if (!edgeX(i, j).isFree)
                 continue;
-            sf::Vector2f pos{m_cellSize * i, m_cellSize * (j + .5f)};
+            sf::Vector2f pos{i, j + .5f};
             sf::Vector2f velocity = {vx(i, j), computeVelocityY(pos)};
             sf::Vector2f posPrev = pos - velocity * dt.asSeconds();
             edgesXTmp[i][j].velocity = computeVelocity(posPrev).x;
@@ -216,7 +210,7 @@ void FluidSim::_advect(sf::Time dt)
         {
             if (!edgeY(i, j).isFree)
                 continue;
-            sf::Vector2f pos{m_cellSize * (i + .5f), m_cellSize * j};
+            sf::Vector2f pos{i + .5f, j};
             sf::Vector2f velocity = {computeVelocityX(pos), vy(i, j)};
             sf::Vector2f posPrev = pos - velocity * dt.asSeconds();
             edgesYTmp[i][j].velocity = computeVelocity(posPrev).y;
@@ -244,6 +238,9 @@ float FluidSim::_computeDivergence()
 
 void FluidSim::_spreadDivergence()
 {
+    // _spreadDivergenceRed();
+    // _spreadDivergenceBlack();
+
     for (int i = 0; i < N - 1; ++i)
     {
         for (int j = 0; j < M - 1; ++j)
@@ -252,7 +249,7 @@ void FluidSim::_spreadDivergence()
             if (s == 0)
                 continue;
 
-            float d = 2 * div(i, j);
+            float d = div(i, j);
             vx(i + 1, j) -= d * edgeX(i + 1, j).isFree / s;
             vx(i, j) += d * edgeX(i, j).isFree / s;
             vy(i, j + 1) -= d * edgeY(i, j + 1).isFree / s;
@@ -260,3 +257,49 @@ void FluidSim::_spreadDivergence()
         }
     }
 }
+
+void FluidSim::_spreadDivergenceRed()
+{
+    std::vector<sf::Vector2i> allPos; allPos.reserve(N*M/2);
+    for (int i = 0; i < N - 1; ++i)
+    {
+        for (int j = i%2; j < M - 1; j+=2)
+        {
+            allPos.emplace_back(i, j);
+        }
+    }
+    std::async(std::launch::async, [&](){ for(int i=0; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
+    std::async(std::launch::async, [&](){ for(int i=1; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
+    std::async(std::launch::async, [&](){ for(int i=2; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
+    std::async(std::launch::async, [&](){ for(int i=3; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
+}
+
+void FluidSim::_spreadDivergenceBlack()
+{
+    std::vector<sf::Vector2i> allPos; allPos.reserve(N*M/2);
+    for (int i = 0; i < N - 1; ++i)
+    {
+        for (int j = 1-i%2; j < M - 1; j+=2)
+        {
+            allPos.emplace_back(i, j);
+        }
+    }
+    std::async(std::launch::async, [&](){ for(int i=0; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
+    std::async(std::launch::async, [&](){ for(int i=1; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
+    std::async(std::launch::async, [&](){ for(int i=2; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
+    std::async(std::launch::async, [&](){ for(int i=3; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
+}
+
+void FluidSim::_spreadDivergence(int i, int j)
+{
+    float s = m_cells[i][j].freeNeigbours;
+    if (s > 0)
+    {
+        float d = 2*div(i, j);
+        vx(i + 1, j) -= d * edgeX(i + 1, j).isFree / s;
+        vx(i, j)     += d * edgeX(i, j).isFree / s;
+        vy(i, j + 1) -= d * edgeY(i, j + 1).isFree / s;
+        vy(i, j)     += d * edgeY(i, j).isFree / s;
+    }
+}
+
