@@ -9,63 +9,80 @@
 
 int main()
 {
-    const int size = 800;
+    const int size = 1000;
 
     sf::ContextSettings settings;
     settings.antiAliasingLevel = 0;
 
-    sf::RenderWindow window{sf::VideoMode{{size, size}}, "FluidSim", sf::Style::Default, sf::State::Windowed, settings};
-    // window.setFramerateLimit(60);
-
     FluidSim fluidSim{};
     FluidDisplay fluidDisplay{fluidSim};
-    fluidDisplay.translate({5,5});
-    fluidDisplay.scale({20, 20});
 
-    act::ArrowShape cursorSpeed{4, sf::Color::Green};
+    act::ArrowShape cursorSpeed{0.05f, sf::Color::Green};
     std::vector<act::ArrowShape> arrows;
-    arrows.assign(40*40, {1, sf::Color::Red});
+    arrows.assign(FluidSim::N * FluidSim::M, {0.05f, sf::Color::Red});
 
-    sf::Clock clock;
+    sf::Clock displayClock;
+    sf::Clock updateClock;
     sf::Clock perf;
     int n = 0;
+
+    sf::RenderWindow window{sf::VideoMode{{size, size}}, "FluidSim", sf::Style::Default, sf::State::Windowed, settings};
+    sf::View view = window.getView();
+    view.setCenter({});
+    view.zoom(1./20);
+    window.setView(view);
+    // window.setFramerateLimit(60);
 
     while (window.isOpen())
     {
         window.handleEvents(
             [&](const sf::Event::Closed&){ window.close(); },
-            [&](const sf::Event::KeyPressed& kp){ if (kp.code == sf::Keyboard::Key::Escape) window.close(); },
-            [&](const sf::Event::MouseWheelScrolled& mws){
-                if (mws.delta > 0)
-                    fluidDisplay.scale({1.1,1.1});
-                else
-                    fluidDisplay.scale({1/1.1,1/1.1});
+            // [&](const sf::Event::Resized& resize){
+                // view.setSize(sf::Vector2f{resize.size});
+                // window.setView(view);
+            // },
+            [&](const sf::Event::KeyPressed& kp){
+                if (kp.code == sf::Keyboard::Key::Escape)
+                    window.close();
+                if (kp.code == sf::Keyboard::Key::Space)
+                {
+                    fluidSim.velocity[FluidSim::N/2-1, FluidSim::M/2-1] += {50, 0};
+                    fluidSim.velocity[FluidSim::N/2-1, FluidSim::M/2] += {50, 0};
+                    fluidSim.density[FluidSim::N/2-1, FluidSim::M/2-1] += 1;
+                    fluidSim.density[FluidSim::N/2-1, FluidSim::M/2] += 1;
+                    }
             },
-            [&](const sf::Event::MouseMoved& mm){
-                sf::Vector2f mouseInGrid = fluidDisplay.getInverse().transformPoint(sf::Vector2f{mm.position});
-                cursorSpeed.setStartPosition(sf::Vector2f{mm.position});
-                cursorSpeed.setEndPosition(sf::Vector2f{mm.position} + 100.f * fluidSim.computeVelocity(mouseInGrid));
-                if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
-                    fluidSim.density(std::floor(mouseInGrid.x), std::floor(mouseInGrid.y)) += 0.2;
+            [&](const sf::Event::MouseWheelScrolled& mws){
+                view.zoom(std::pow(1.1, -std::copysign(1, mws.delta)));
+                window.setView(view);
+            },
+            [&](const sf::Event::MouseMoved&){
             },
             [&](const sf::Event::MouseButtonPressed& mbp){
-                sf::Vector2f mouseInGrid = fluidDisplay.getInverse().transformPoint(sf::Vector2f{mbp.position});
-                fluidSim.density(std::floor(mouseInGrid.x), std::floor(mouseInGrid.y)) += 2;
+                sf::Vector2f mousePos = window.mapPixelToCoords(mbp.position);
+                sf::Vector2f mouseInGrid = mousePos + sf::Vector2f{FluidSim::N/2.f, FluidSim::M/2.f};
+                fluidSim.density.at(std::floor(mouseInGrid.x), std::floor(mouseInGrid.y)) += 2;
             });
 
-        if (clock.getElapsedTime() > sf::seconds(1/30.))
-        {
-            clock.restart();
 
-            for (int i=0; i<40; ++i)
+        if (displayClock.getElapsedTime() > sf::seconds(1/30.))
+        {
+            displayClock.restart();
+
+            sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
+            sf::Vector2f mouseInGrid = mousePos + sf::Vector2f{FluidSim::N/2.f-.5, FluidSim::M/2.f-.5};
+            cursorSpeed.setStartPosition(mousePos);
+            cursorSpeed.setEndPosition(mousePos + 20.f * fluidSim.computeLerpCell(mouseInGrid).first);
+
+            for (int i=1; i<FluidSim::N-1; ++i)
             {
-                for (int j=0; j<40; ++j)
+                for (int j=1; j<FluidSim::M-1; ++j)
                 {
-                    sf::Vector2f startPosInGrid{i+.5f, j+.5f};
-                    sf::Vector2f startPos = fluidDisplay.transformPoint(startPosInGrid);
-                    sf::Vector2f endPos = startPos + 5.f * fluidSim.computeVelocity(startPosInGrid);
-                    arrows.at(40*i+j).setStartPosition(startPos);
-                    arrows.at(40*i+j).setEndPosition(endPos);
+                    sf::Vector2f startPos{i-FluidSim::N/2.f+.5f, j-FluidSim::M/2.f+.5f};
+                    sf::Vector2f vel = fluidSim.velocity.at(i, j);
+                    sf::Vector2f endPos = startPos + vel;
+                    arrows.at(FluidSim::M*i+j).setStartPosition(startPos);
+                    arrows.at(FluidSim::M*i+j).setEndPosition(endPos);
                 }
             }
             window.clear({45, 45, 45});
@@ -75,19 +92,23 @@ int main()
             window.draw(cursorSpeed);
             window.display();
 
-            fflush(stdout);
         }
 
-        perf.start();
-        fluidSim.update(sf::seconds(0.05));
-        n++;
-        perf.stop();
-        if (perf.getElapsedTime() > sf::seconds(1))
         {
-            perf.reset();
-            fmt::println("ups {}", n);
-            n = 0;
+            perf.start();
+            fluidSim.update(10.f*updateClock.restart());
+            n++;
+            perf.stop();
+            if (perf.getElapsedTime() > sf::seconds(1))
+            {
+                perf.reset();
+                fmt::println("ups {}", n);
+                n = 0;
+            }
         }
+
+        fflush(stdout);
+
     }
 
     return 0;

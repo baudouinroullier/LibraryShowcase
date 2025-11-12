@@ -6,7 +6,7 @@
 #include <array>
 #include "FluidSim.h"
 
-class FluidDisplay : public sf::Drawable, public sf::Transform
+class FluidDisplay : public sf::Drawable
 {
 public:
     static int constexpr N = FluidSim::N;
@@ -17,14 +17,11 @@ public:
 protected:
     void draw(sf::RenderTarget& target, sf::RenderStates states) const override;
 
-    int _indexOfX(int i, int j) const;
-    int _indexOfY(int i, int j) const;
     int _indexOfC(int i, int j) const;
 
     const FluidSim& m_sim;
 
-    mutable sf::VertexArray m_wallsVA{sf::PrimitiveType::Lines, 2*(2*M*N-N-M)};
-    mutable sf::VertexArray m_cellsVA{sf::PrimitiveType::Triangles, 6*(M-1)*(N-1)};
+    mutable sf::VertexArray m_cellsVA{sf::PrimitiveType::Triangles, 6*M*N};
 };
 
 #endif // FLUIDDISPLAY_H

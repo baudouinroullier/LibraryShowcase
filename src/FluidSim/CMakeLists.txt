@@ -4,7 +4,8 @@ set(EXE_NAME FluidSim)
 add_executable(${EXE_NAME}
     main.cpp
     FluidSim.h FluidSim.cpp
-    FluidDisplay.h FluidDisplay.cpp)
+    FluidDisplay.h FluidDisplay.cpp
+    Array2.h)
 
 set_target_properties(${EXE_NAME} PROPERTIES CXX_STANDARD 23 LINKER_LANGUAGE CXX)
 

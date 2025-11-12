@@ -10,296 +10,177 @@ sf::Color operator*(sf::Color lhs, float s)
 
 FluidSim::FluidSim()
 {
-    m_edgesX.front().fill({1, false});
-    m_edgesX.back().fill({1, false});
+    velocity.fill({});
+    density.fill({});
+    divergence.fill({});
+    potential.fill({});
 
-    for (int j = M / 4; j < M - 1 - M / 4; ++j)
-    {
-        edgeX(N/2, j) = {0, false};
-        edgeX(N/2 - 1, j) = {0, false};
-    }
+    // velocity.at(N/2-1, M/2-1) = {5, 0};
+    // velocity.at(N/2-1, M/2) = {5, 0};
 
-    for (int i = 0; i < N - 1; ++i)
-        m_edgesY[i].front() = m_edgesY[i].back() = {0, false};
+    _project();
 
-
-    for (int i = 0; i < N - 1; ++i)
-    {
-        for (int j = 0; j < M - 1; ++j)
-        {
-            m_cells[i][j].freeNeigbours = edgeX(i + 1, j).isFree + edgeX(i, j).isFree + edgeY(i, j + 1).isFree + edgeY(i, j).isFree;
-        }
-    }
-
-    _computeDivergence();
+    m_newVelocity = velocity;
+    m_newDensity = density;
 }
 
 void FluidSim::update(sf::Time dt)
 {
+    // add sources
+
+
+    _diffuse(dt);
     _advect(dt);
-    _forceNullDivergence();
 }
 
-float FluidSim::computeVelocityX(sf::Vector2f pos) const
+std::pair<sf::Vector2f, float> FluidSim::computeLerpCell(sf::Vector2f pos) const
 {
-    if (pos.x < 0 || pos.x > N - 1 || pos.y < 0 || pos.y > M - 1)
-        return {};
+    pos.x = std::clamp(pos.x, 0.f, N-2.f);
+    pos.y = std::clamp(pos.y, 0.f, M-2.f);
 
-    float i = std::floor(pos.x);
-    float i1 = std::min(i + 1, N - 1.f);
-    float j = std::max(std::floor(pos.y - 0.5), 0.);
-    float j1 = std::min(std::floor(pos.y + 0.5f), M - 2.f);
+    float i0 = std::floor(pos.x);
+    float i1 = i0 + 1;
+    float j0 = std::floor(pos.y);
+    float j1 = j0 + 1;
 
-    float ti = pos.x - i;
-    float tj = pos.y - j - .5f;
+    float ti = pos.x - i0;
+    float tj = pos.y - j0;
 
-    float v1 = lerp(vx(i, j), vx(i1, j), ti);
-    float v2 = lerp(vx(i, j1), vx(i1, j1), ti);
-    return lerp(v1, v2, tj);
+    return {bilerp(velocity[i0, j0], velocity[i1, j0], velocity[i0, j1], velocity[i1, j1], ti, tj),
+            bilerp(density[i0, j0], density[i1, j0], density[i0, j1], density[i1, j1], ti, tj)};
 }
 
-float FluidSim::computeVelocityY(sf::Vector2f pos) const
+void FluidSim::_diffuse(sf::Time dt)
 {
-    if (pos.x < 0 || pos.x > N - 1 || pos.y < 0 || pos.y > M - 1)
-        return {};
-
-    float i = std::max(std::floor(pos.x - 0.5), 0.);
-    float i1 = std::min(std::floor(pos.x + 0.5f), N - 2.f);
-    float j = std::floor(pos.y);
-    float j1 = std::min(j + 1, M - 1.f);
-
-    float ti = pos.x - i - .5f;
-    float tj = pos.y - j;
-
-    float v1 = lerp(vy(i, j), vy(i1, j), ti);
-    float v2 = lerp(vy(i, j1), vy(i1, j1), ti);
-    return lerp(v1, v2, tj);
-}
-
-sf::Vector2f FluidSim::computeVelocity(sf::Vector2f pos) const
-{
-    return {computeVelocityX(pos), computeVelocityY(pos)};
-}
-
-float FluidSim::computeDensity(sf::Vector2f pos) const
-{
-    if (pos.x < 0 || pos.x > N - 1 || pos.y < 0 || pos.y > M - 1)
-        return {};
-
-    float i = std::max(std::floor(pos.x - 0.5), 0.);
-    float i1 = std::min(std::floor(pos.x + 0.5), N - 2.);
-    float j = std::max(std::floor(pos.y - 0.5), 0.);
-    float j1 = std::min(std::floor(pos.y + 0.5), M - 2.);
-
-    float ti = pos.x - i - .5;
-    float tj = pos.y - j - .5;
-
-    float d1 = lerp(density(i, j), density(i1, j), ti);
-    float d2 = lerp(density(i, j1), density(i1, j1), ti);
-    float d = lerp(d1, d2, tj);
-
-    return d;
-}
-
-Edge FluidSim::edgeX(int i, int j) const
-{
-    return m_edgesX[i][j];
-}
-
-Edge FluidSim::edgeY(int i, int j) const
-{
-    return m_edgesY[i][j];
-}
-
-float FluidSim::vx(int i, int j) const
-{
-    return m_edgesX[i][j].velocity;
-}
-
-float FluidSim::vy(int i, int j) const
-{
-    return m_edgesY[i][j].velocity;
-}
-
-float FluidSim::div(int i, int j) const
-{
-    return m_cells[i][j].divergence;
-}
-
-float FluidSim::density(int i, int j) const
-{
-    return m_cells[i][j].density;
-}
-
-Edge& FluidSim::edgeX(int i, int j)
-{
-    return m_edgesX[i][j];
-}
-
-Edge& FluidSim::edgeY(int i, int j)
-{
-    return m_edgesY[i][j];
-}
-
-float& FluidSim::vx(int i, int j)
-{
-    return m_edgesX[i][j].velocity;
-}
-
-float& FluidSim::vy(int i, int j)
-{
-    return m_edgesY[i][j].velocity;
-}
-
-float& FluidSim::div(int i, int j)
-{
-    return m_cells[i][j].divergence;
-}
-
-float& FluidSim::density(int i, int j)
-{
-    return m_cells[i][j].density;
-}
-
-void FluidSim::_forceNullDivergence()
-{
-    int n=0;
-    double div = _computeDivergence();
-    while (div > N * M / 5000.)
-    {
-        n++;
-        _spreadDivergence();
-        div = _computeDivergence();
-    }
-    // fmt::println("{} {}", n, div);
+    _project();
 }
 
 void FluidSim::_advect(sf::Time dt)
 {
-    auto edgesXTmp = m_edgesX;
-    auto edgesYTmp = m_edgesY;
-    auto cellsTmp = m_cells;
-
-    for (int i = 0; i < N - 1; ++i)
+    for (int i = 1; i < N-1; ++i)
     {
-        for (int j = 0; j < M - 1; ++j)
+        for (int j = 1; j < M-1; ++j)
         {
-            sf::Vector2f pos{i + .5f, j + .5f};
-            sf::Vector2f velocity{vx(i, j) + vx(i + 1, j), vy(i, j) + vy(i, j + 1)};
-            sf::Vector2f posPrev = pos - velocity * .5f * dt.asSeconds();
-            cellsTmp[i][j].density = computeDensity(posPrev);
+            sf::Vector2f posPrev = sf::Vector2f{i, j} - velocity[i,j] * dt.asSeconds();
+            auto newCell = computeLerpCell(posPrev);
+            m_newVelocity[i,j] = newCell.first;
+            m_newDensity[i,j] = newCell.second;
         }
     }
 
-    for (int i = 0; i < N; ++i)
-    {
-        for (int j = 0; j < M - 1; ++j)
-        {
-            if (!edgeX(i, j).isFree)
-                continue;
-            sf::Vector2f pos{i, j + .5f};
-            sf::Vector2f velocity = {vx(i, j), computeVelocityY(pos)};
-            sf::Vector2f posPrev = pos - velocity * dt.asSeconds();
-            edgesXTmp[i][j].velocity = computeVelocity(posPrev).x;
-        }
-    }
+    std::swap(velocity, m_newVelocity);
+    std::swap(density, m_newDensity);
+    _setBoundsVelocity();
+    _setBoundsDensity();
 
-    for (int i = 0; i < N - 1; ++i)
-    {
-        for (int j = 0; j < M; ++j)
-        {
-            if (!edgeY(i, j).isFree)
-                continue;
-            sf::Vector2f pos{i + .5f, j};
-            sf::Vector2f velocity = {computeVelocityX(pos), vy(i, j)};
-            sf::Vector2f posPrev = pos - velocity * dt.asSeconds();
-            edgesYTmp[i][j].velocity = computeVelocity(posPrev).y;
-        }
-    }
-
-    m_edgesX = edgesXTmp;
-    m_edgesY = edgesYTmp;
-    m_cells = cellsTmp;
+    _project();
 }
 
-float FluidSim::_computeDivergence()
+void FluidSim::_project()
 {
-    float totalDiv = 0;
-    for (int i = 0; i < N - 1; ++i)
+    std::array<std::array<float, M>, N> p;
+    for (auto& c : p)
+        c.fill(0);
+
+    _computeDivergence();
+    for (int k=0; k<20; ++k)
     {
-        for (int j = 0; j < M - 1; ++j)
+        for (int i=1; i<N-1; ++i)
         {
-            div(i, j) = (vx(i + 1, j) - vx(i, j) + vy(i, j + 1) - vy(i, j)) / 2;
-            totalDiv += std::abs(div(i, j));
+            for (int j=1; j<M-1; ++j)
+            {
+                p[i][j] = (divergence[i,j] + p[i-1][j] + p[i+1][j] + p[i][j-1] + p[i][j+1])/4; // solve grad P = div V
+            }
+        }
+        _setBoundsP();
+    }
+    for (int i=1; i<N-1; ++i)
+    {
+        for (int j=1; j<M-1; ++j)
+        {
+            velocity[i,j].x -= (p[i+1][j] - p[i-1][j]) / 2;
+            velocity[i,j].y -= (p[i][j+1] - p[i][j-1]) / 2;
         }
     }
-    return totalDiv;
+    _setBoundsVelocity();
 }
 
-void FluidSim::_spreadDivergence()
+void FluidSim::_setBoundsDensity()
 {
-    // _spreadDivergenceRed();
-    // _spreadDivergenceBlack();
-
-    for (int i = 0; i < N - 1; ++i)
+    for (int i=1; i<N-1; ++i)
     {
-        for (int j = 0; j < M - 1; ++j)
-        {
-            float s = m_cells[i][j].freeNeigbours;
-            if (s == 0)
-                continue;
+        density[i, 0] = density[i, 1];
+        density[i, M-1] = density[i, M-2];
+    }
+    for (int j=1; j<M-1; ++j)
+    {
+        density[0, j] = density[1, j];
+        density[N-1, j] = density[N-2, j];
+    }
+    density[0, 0]     = (density[0, 1] + density[1, 0]) / 2;
+    density[0, M-1]   = (density[0, M-2] + density[1, M-1]) / 2;
+    density[N-1, 0]   = (density[N-1, 1] + density[N-2, 0]) / 2;
+    density[N-1, M-1] = (density[N-1, M-2] + density[N-2, M-1]) / 2;
+}
 
-            float d = div(i, j);
-            vx(i + 1, j) -= d * edgeX(i + 1, j).isFree / s;
-            vx(i, j) += d * edgeX(i, j).isFree / s;
-            vy(i, j + 1) -= d * edgeY(i, j + 1).isFree / s;
-            vy(i, j) += d * edgeY(i, j).isFree / s;
+
+void FluidSim::_setBoundsVelocity()
+{
+    for (int i=1; i<N-1; ++i)
+    {
+        velocity[i, 0] = velocity[i, 1].componentWiseMul({1, -1});
+        velocity[i, M-1] = velocity[i, M-2].componentWiseMul({1, -1});
+    }
+    for (int j=1; j<M-1; ++j)
+    {
+        velocity[0, j] = velocity[1, j].componentWiseMul({-1, 1});
+        velocity[N-1, j] = velocity[N-2, j].componentWiseMul({-1, 1});
+    }
+    velocity[0, 0]     = 0.5f * (velocity[0, 1] + velocity[1, 0]);
+    velocity[0, M-1]   = 0.5f * (velocity[0, M-2] + velocity[1, M-1]);
+    velocity[N-1, 0]   = 0.5f * (velocity[N-1, 1] + velocity[N-2, 0]);
+    velocity[N-1, M-1] = 0.5f * (velocity[N-1, M-2] + velocity[N-2, M-1]);
+}
+
+void FluidSim::_setBoundsP()
+{
+    for (int i=1; i<N-1; ++i)
+    {
+        potential[i, 0] = potential[i, 1];
+        potential[i, M-1] = potential[i, M-2];
+    }
+    for (int j=1; j<M-1; ++j)
+    {
+        potential[0, j] = potential[1, j];
+        potential[N-1, j] = potential[N-2, j];
+    }
+    potential[0, 0]     = (potential[0, 1] + potential[1, 0]) / 2;
+    potential[0, M-1]   = (potential[0, M-2] + potential[1, M-1]) / 2;
+    potential[N-1, 0]   = (potential[N-1, 1] + potential[N-2, 0]) / 2;
+    potential[N-1, M-1] = (potential[N-1, M-2] + potential[N-2, M-1]) / 2;
+}
+
+void FluidSim::_computeDivergence()
+{
+    for (int i=1; i<N-1; ++i)
+    {
+        for (int j=1; j<M-1; ++j)
+        {
+            divergence[i,j] = -(velocity[i+1,j].x - velocity[i-1,j].x + velocity[i,j+1].y - velocity[i,j-1].y) / 2;
         }
     }
-}
-
-void FluidSim::_spreadDivergenceRed()
-{
-    std::vector<sf::Vector2i> allPos; allPos.reserve(N*M/2);
-    for (int i = 0; i < N - 1; ++i)
+    for (int i=1; i<N-1; ++i)
     {
-        for (int j = i%2; j < M - 1; j+=2)
-        {
-            allPos.emplace_back(i, j);
-        }
+        divergence[i, 0] = divergence[i, 1];
+        divergence[i, M-1] = divergence[i, M-2];
     }
-    std::async(std::launch::async, [&](){ for(int i=0; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
-    std::async(std::launch::async, [&](){ for(int i=1; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
-    std::async(std::launch::async, [&](){ for(int i=2; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
-    std::async(std::launch::async, [&](){ for(int i=3; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
-}
-
-void FluidSim::_spreadDivergenceBlack()
-{
-    std::vector<sf::Vector2i> allPos; allPos.reserve(N*M/2);
-    for (int i = 0; i < N - 1; ++i)
+    for (int j=1; j<M-1; ++j)
     {
-        for (int j = 1-i%2; j < M - 1; j+=2)
-        {
-            allPos.emplace_back(i, j);
-        }
+        divergence[0, j] = divergence[1, j];
+        divergence[N-1, j] = divergence[N-2, j];
     }
-    std::async(std::launch::async, [&](){ for(int i=0; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
-    std::async(std::launch::async, [&](){ for(int i=1; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
-    std::async(std::launch::async, [&](){ for(int i=2; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
-    std::async(std::launch::async, [&](){ for(int i=3; i<allPos.size(); i+=4) _spreadDivergence(allPos[i].x, allPos[i].y); });
+    divergence[0, 0]     = (divergence[0, 1] + divergence[1, 0]) / 2;
+    divergence[0, M-1]   = (divergence[0, M-2] + divergence[1, M-1]) / 2;
+    divergence[N-1, 0]   = (divergence[N-1, 1] + divergence[N-2, 0]) / 2;
+    divergence[N-1, M-1] = (divergence[N-1, M-2] + divergence[N-2, M-1]) / 2;
 }
-
-void FluidSim::_spreadDivergence(int i, int j)
-{
-    float s = m_cells[i][j].freeNeigbours;
-    if (s > 0)
-    {
-        float d = 2*div(i, j);
-        vx(i + 1, j) -= d * edgeX(i + 1, j).isFree / s;
-        vx(i, j)     += d * edgeX(i, j).isFree / s;
-        vy(i, j + 1) -= d * edgeY(i, j + 1).isFree / s;
-        vy(i, j)     += d * edgeY(i, j).isFree / s;
-    }
-}
-

@@ -1,7 +1,7 @@
 #ifndef FLUIDSIM_H
 #define FLUIDSIM_H
 
-#include <array>
+#include "Array2.h"
 #include <SFML/Graphics.hpp>
 #include <fmt/core.h>
 
@@ -13,19 +13,11 @@ T lerp(const T a, const T b, float t)
     return a + (b-a)*t;
 }
 
-
-struct Edge
+template<class T>
+T bilerp(const T a00, const T a01, const T a10, const T a11, float tx, float ty)
 {
-    float velocity = 0;
-    bool isFree = true;
-};
-
-struct Cell
-{
-    float divergence = 0;
-    float density = 0;
-    int freeNeigbours = 0;
-};
+    return lerp(lerp(a00, a01, tx), lerp(a10, a11, tx), ty);
+}
 
 // template <int _N, int _M>
 class FluidSim
@@ -38,42 +30,25 @@ public:
 
     void update(sf::Time dt);
 
-    float computeVelocityX(sf::Vector2f pos) const;
+    std::pair<sf::Vector2f, float> computeLerpCell(sf::Vector2f pos) const;
 
-    float computeVelocityY(sf::Vector2f pos) const;
-
-    sf::Vector2f computeVelocity(sf::Vector2f pos) const;
-
-    float computeDensity(sf::Vector2f pos) const;
-
-    Edge edgeX(int i, int j) const;
-    Edge edgeY(int i, int j) const;
-    float vx(int i, int j) const;
-    float vy(int i, int j) const;
-    float div(int i, int j) const;
-    float density(int i, int j) const;
-    Edge& edgeX(int i, int j);
-    Edge& edgeY(int i, int j);
-    float& vx(int i, int j);
-    float& vy(int i, int j);
-    float& div(int i, int j);
-    float& density(int i, int j);
+    Array2<sf::Vector2f, N, M> velocity;
+    Array2<float, N, M> density;
+    Array2<float, N, M> divergence;
+    Array2<float, N, M> potential;
 
 protected:
-    void _forceNullDivergence();
-
+    void _diffuse(sf::Time dt);
     void _advect(sf::Time dt);
+    void _project();
+    void _setBoundsDensity();
+    void _setBoundsVelocity();
+    void _setBoundsP();
 
-    float _computeDivergence();
+    void _computeDivergence();
 
-    void _spreadDivergence();
-    void _spreadDivergenceRed();
-    void _spreadDivergenceBlack();
-    void _spreadDivergence(int i, int j);
-
-    std::array<std::array<Edge, M-1>, N> m_edgesX;
-    std::array<std::array<Edge, M>, N-1> m_edgesY;
-    std::array<std::array<Cell, M-1>, N-1> m_cells;
+    Array2<sf::Vector2f, N, M> m_newVelocity;
+    Array2<float, N, M> m_newDensity;
 };
 
 #endif // FLUIDSIM_H
