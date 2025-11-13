@@ -3,9 +3,9 @@
 
 sf::Color operator*(sf::Color lhs, float s)
 {
-    return {std::clamp<uint8_t>(lhs.r * s, 0, 255),
-            std::clamp<uint8_t>(lhs.g * s, 0, 255),
-            std::clamp<uint8_t>(lhs.b * s, 0, 255)};
+    return {std::clamp<int>(lhs.r * s, 0, 255),
+            std::clamp<int>(lhs.g * s, 0, 255),
+            std::clamp<int>(lhs.b * s, 0, 255)};
 }
 
 FluidSim::FluidSim()
@@ -27,8 +27,8 @@ FluidSim::FluidSim()
 void FluidSim::update(sf::Time dt)
 {
     // add sources
-    velocity[N/2-1, M/2-1] = {2, 0};
-    velocity[N/2-1, M/2] = {2, 0};
+    velocity[N/2-1, M/2-1] = {5, 0};
+    velocity[N/2-1, M/2] = {5, 0};
 
     _diffuse(dt);
     _advect(dt);
