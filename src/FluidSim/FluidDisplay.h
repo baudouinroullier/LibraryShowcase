@@ -9,8 +9,8 @@
 class FluidDisplay : public sf::Drawable
 {
 public:
-    static int constexpr N = FluidSim::N;
-    static int constexpr M = FluidSim::M;
+    static int constexpr N = FluidSim::N-2;
+    static int constexpr M = FluidSim::M-2;
 
     FluidDisplay(const FluidSim& sim);
 

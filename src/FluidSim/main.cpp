@@ -29,7 +29,7 @@ int main()
     sf::RenderWindow window{sf::VideoMode{{size, size}}, "FluidSim", sf::Style::Default, sf::State::Windowed, settings};
     sf::View view = window.getView();
     view.setCenter({});
-    view.zoom(1./20);
+    view.zoom(1./10);
     window.setView(view);
     // window.setFramerateLimit(60);
 
@@ -59,13 +59,13 @@ int main()
                 {
                     sf::Vector2f mousePos = window.mapPixelToCoords(mm.position);
                     sf::Vector2f mouseInGrid = mousePos + sf::Vector2f{FluidSim::N/2.f, FluidSim::M/2.f};
-                    fluidSim.density.at(std::floor(mouseInGrid.x), std::floor(mouseInGrid.y)) += 0.5;
+                    fluidSim.density.at(std::floor(mouseInGrid.x), std::floor(mouseInGrid.y)) += 2;
                 }
             },
             [&](const sf::Event::MouseButtonPressed& mbp){
                 sf::Vector2f mousePos = window.mapPixelToCoords(mbp.position);
                 sf::Vector2f mouseInGrid = mousePos + sf::Vector2f{FluidSim::N/2.f, FluidSim::M/2.f};
-                fluidSim.density.at(std::floor(mouseInGrid.x), std::floor(mouseInGrid.y)) += 2;
+                fluidSim.density.at(std::floor(mouseInGrid.x), std::floor(mouseInGrid.y)) += 5;
             });
 
 
@@ -100,7 +100,7 @@ int main()
 
         {
             perf.start();
-            fluidSim.update(20.f*updateClock.restart());
+            fluidSim.update(200.f*updateClock.restart());
             n++;
             perf.stop();
             if (perf.getElapsedTime() > sf::seconds(1))

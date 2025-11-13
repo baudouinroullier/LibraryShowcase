@@ -19,12 +19,11 @@ T bilerp(const T a00, const T a01, const T a10, const T a11, float tx, float ty)
     return lerp(lerp(a00, a01, tx), lerp(a10, a11, tx), ty);
 }
 
-// template <int _N, int _M>
 class FluidSim
 {
 public:
-    static int constexpr N = 80; //_N;
-    static int constexpr M = 80; //_M;
+    static int constexpr N = 200; //_N;
+    static int constexpr M = 200; //_M;
 
     FluidSim();
 

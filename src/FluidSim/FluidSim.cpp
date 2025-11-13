@@ -3,9 +3,9 @@
 
 sf::Color operator*(sf::Color lhs, float s)
 {
-    return {static_cast<uint8_t>(std::clamp<float>(lhs.r * s, 0, 255)),
-            static_cast<uint8_t>(std::clamp<float>(lhs.g * s, 0, 255)),
-            static_cast<uint8_t>(std::clamp<float>(lhs.b * s, 0, 255))};
+    return {std::clamp<uint8_t>(lhs.r * s, 0, 255),
+            std::clamp<uint8_t>(lhs.g * s, 0, 255),
+            std::clamp<uint8_t>(lhs.b * s, 0, 255)};
 }
 
 FluidSim::FluidSim()
@@ -53,7 +53,7 @@ std::pair<sf::Vector2f, float> FluidSim::computeLerpCell(sf::Vector2f pos) const
 
 void FluidSim::_diffuse(sf::Time dt)
 {
-    float a = dt.asSeconds() * 0.01f;
+    float a = dt.asSeconds() * 0.002f;
     for (int k = 0; k < 20; ++k)
     {
         for (int i = 1; i < N-1; ++i)

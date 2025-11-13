@@ -27,8 +27,9 @@ void FluidDisplay::draw(sf::RenderTarget& target, sf::RenderStates states) const
         for (int j = 0; j < M; ++j)
         {
             int idx = _indexOfC(i, j);
+            sf::Color color = lerp({64, 64, 64}, sf::Color::White, m_sim.density[i+1, j+1]);
             for (int k=0; k<6; ++k)
-                m_cellsVA[idx + k].color = lerp({64, 64, 64}, sf::Color::White, m_sim.density[i, j]);
+                m_cellsVA[idx + k].color = color;
         }
     }
 
