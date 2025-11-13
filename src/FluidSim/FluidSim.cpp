@@ -27,7 +27,8 @@ FluidSim::FluidSim()
 void FluidSim::update(sf::Time dt)
 {
     // add sources
-
+    velocity[N/2-1, M/2-1] = {2, 0};
+    velocity[N/2-1, M/2] = {2, 0};
 
     _diffuse(dt);
     _advect(dt);
@@ -52,6 +53,23 @@ std::pair<sf::Vector2f, float> FluidSim::computeLerpCell(sf::Vector2f pos) const
 
 void FluidSim::_diffuse(sf::Time dt)
 {
+    float a = dt.asSeconds() * 0.01f;
+    for (int k = 0; k < 20; ++k)
+    {
+        for (int i = 1; i < N-1; ++i)
+        {
+            for (int j = 1; j < N-1; ++j)
+            {
+                m_newVelocity[i, j] = (velocity[i, j] + a * (m_newVelocity[i-1, j] + m_newVelocity[i+1, j] + m_newVelocity[i, j-1] + m_newVelocity[i, j+1])) / (1 + 4*a);
+                m_newDensity[i, j] = (density[i, j] + a * (m_newDensity[i-1, j] + m_newDensity[i+1, j] + m_newDensity[i, j-1] + m_newDensity[i, j+1])) / (1 + 4*a);
+            }
+        }
+    }
+    std::swap(velocity, m_newVelocity);
+    std::swap(density, m_newDensity);
+    _setBoundsVelocity();
+    _setBoundsDensity();
+
     _project();
 }
 

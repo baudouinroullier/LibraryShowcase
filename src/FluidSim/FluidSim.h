@@ -23,8 +23,8 @@ T bilerp(const T a00, const T a01, const T a10, const T a11, float tx, float ty)
 class FluidSim
 {
 public:
-    static int constexpr N = 40; //_N;
-    static int constexpr M = 40; //_M;
+    static int constexpr N = 80; //_N;
+    static int constexpr M = 80; //_M;
 
     FluidSim();
 

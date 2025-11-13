@@ -46,8 +46,6 @@ int main()
                     window.close();
                 if (kp.code == sf::Keyboard::Key::Space)
                 {
-                    fluidSim.velocity[FluidSim::N/2-1, FluidSim::M/2-1] += {50, 0};
-                    fluidSim.velocity[FluidSim::N/2-1, FluidSim::M/2] += {50, 0};
                     fluidSim.density[FluidSim::N/2-1, FluidSim::M/2-1] += 1;
                     fluidSim.density[FluidSim::N/2-1, FluidSim::M/2] += 1;
                     }
@@ -56,7 +54,13 @@ int main()
                 view.zoom(std::pow(1.1, -std::copysign(1, mws.delta)));
                 window.setView(view);
             },
-            [&](const sf::Event::MouseMoved&){
+            [&](const sf::Event::MouseMoved& mm){
+                if (sf::Mouse::isButtonPressed(sf::Mouse::Button::Left))
+                {
+                    sf::Vector2f mousePos = window.mapPixelToCoords(mm.position);
+                    sf::Vector2f mouseInGrid = mousePos + sf::Vector2f{FluidSim::N/2.f, FluidSim::M/2.f};
+                    fluidSim.density.at(std::floor(mouseInGrid.x), std::floor(mouseInGrid.y)) += 0.5;
+                }
             },
             [&](const sf::Event::MouseButtonPressed& mbp){
                 sf::Vector2f mousePos = window.mapPixelToCoords(mbp.position);
@@ -72,7 +76,7 @@ int main()
             sf::Vector2f mousePos = window.mapPixelToCoords(sf::Mouse::getPosition(window));
             sf::Vector2f mouseInGrid = mousePos + sf::Vector2f{FluidSim::N/2.f-.5, FluidSim::M/2.f-.5};
             cursorSpeed.setStartPosition(mousePos);
-            cursorSpeed.setEndPosition(mousePos + 20.f * fluidSim.computeLerpCell(mouseInGrid).first);
+            cursorSpeed.setEndPosition(mousePos + 5.f * fluidSim.computeLerpCell(mouseInGrid).first);
 
             for (int i=1; i<FluidSim::N-1; ++i)
             {
@@ -87,8 +91,8 @@ int main()
             }
             window.clear({45, 45, 45});
             window.draw(fluidDisplay);
-            for (const auto& a : arrows)
-                window.draw(a);
+            // for (const auto& a : arrows)
+                // window.draw(a);
             window.draw(cursorSpeed);
             window.display();
 
@@ -96,7 +100,7 @@ int main()
 
         {
             perf.start();
-            fluidSim.update(10.f*updateClock.restart());
+            fluidSim.update(20.f*updateClock.restart());
             n++;
             perf.stop();
             if (perf.getElapsedTime() > sf::seconds(1))

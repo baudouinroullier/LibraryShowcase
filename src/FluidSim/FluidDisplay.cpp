@@ -8,7 +8,7 @@ FluidDisplay::FluidDisplay(const FluidSim& sim) :
     {
         for (int j = 0; j < M; ++j)
         {
-            float cellBorder = 0.05f;
+            float cellBorder = 0*0.05f;
             int idx = _indexOfC(i, j);
             m_cellsVA[idx    ].position = sf::Vector2f{i     + cellBorder, j     + cellBorder};
             m_cellsVA[idx + 1].position = sf::Vector2f{i + 1 - cellBorder, j     + cellBorder};
